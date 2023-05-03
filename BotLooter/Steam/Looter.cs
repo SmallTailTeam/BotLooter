@@ -77,7 +77,7 @@ public class Looter
             
             Console.WriteLine($"{credentials.Login}: Залутан! Предметов: {tradeOffer.Me.Assets.Count}");
 
-            await Task.Delay(TimeSpan.FromSeconds(10));
+            await Task.Delay(TimeSpan.FromSeconds(1));
         }
     }
 }

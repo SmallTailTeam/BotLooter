@@ -77,8 +77,15 @@ public class SteamSession
         if (await _credentials.SteamGuardAccount.RefreshSessionAsync())
         {
             _cookieContainer = CreateCookieContainerWithSession(_credentials.SteamGuardAccount.Session);
-        
-            return await IsSessionAlive();
+
+            var isSessionOkay = await IsSessionAlive();
+
+            if (isSessionOkay)
+            {
+                Console.WriteLine($"{_credentials.Login}: Сессия обновлена");
+            }
+            
+            return isSessionOkay;
         }
 
         return false;
@@ -96,6 +103,8 @@ public class SteamSession
         {
             _credentials.SteamGuardAccount.Session = _userLogin.Session;
             _cookieContainer = CreateCookieContainerWithSession(_userLogin.Session);
+            
+            Console.WriteLine($"{_credentials.Login}: Авторизован");
         }
         
         return isLoginOkay;
