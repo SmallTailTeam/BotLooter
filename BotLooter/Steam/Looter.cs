@@ -106,9 +106,14 @@ public class Looter
     {
         var inventoryResponse = await _getInventoryPolicy.ExecuteAsync(() => web.GetInventory(steamId64, 730, 2));
 
-        if (inventoryResponse.Data is not { Assets: not null } inventoryData)
+        if (inventoryResponse.Data is not {} inventoryData)
         {
             return (null, $"Не смог получить инвентарь. StatusCode: {inventoryResponse.StatusCode}");
+        }
+
+        if (inventoryResponse.Data.Assets is null)
+        {
+            return (new List<Asset>(), "");
         }
 
         return (inventoryData.Assets, "");
