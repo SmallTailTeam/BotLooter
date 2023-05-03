@@ -16,8 +16,13 @@ BotLooter.Config.json
 }
 ```
 
-- LootTradeOfferUrl - ссылка на трейд оффер, на который будет отправляться лут
-- SecretsDirectoryPath - путь к папке с мафайлами
-- AccountsFilePath - путь к файлу с аккаунтами формата username:password
-- ProxiesFilePath - путь к файлу с прокси формата protocol://username:password@address:port
-- DelayBetweenAccountsSeconds - задержка между аккаунтами в секундах
+- `LootTradeOfferUrl` - ссылка на трейд оффер, на который будет отправляться лут
+- `SecretsDirectoryPath` - путь к папке с мафайлами
+- `AccountsFilePath` - путь к файлу с аккаунтами формата username:password
+- `ProxiesFilePath` - путь к файлу с прокси формата protocol://username:password@address:port
+- `DelayBetweenAccountsSeconds` - задержка между аккаунтами в секундах
+
+### Функционал
+
+- Лутание инвентарей CS:GO
+- Поддержка прокси
