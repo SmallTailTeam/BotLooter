@@ -26,3 +26,7 @@ BotLooter.Config.json
 
 - Лутание инвентарей CS:GO
 - Поддержка прокси
+
+### Примеры
+
+![Скриншот работы софта](Assets/Screenshot.png)

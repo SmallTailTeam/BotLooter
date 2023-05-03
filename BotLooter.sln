@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotLooter", "BotLooter\BotLooter.csproj", "{778E6E6F-DEC3-4BE7-8EDC-F72EE9A7B0D5}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Src", "Src", "{64664435-FD21-41AD-8AA4-A19FD9E0F485}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,8 @@ Global
 		{778E6E6F-DEC3-4BE7-8EDC-F72EE9A7B0D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{778E6E6F-DEC3-4BE7-8EDC-F72EE9A7B0D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{778E6E6F-DEC3-4BE7-8EDC-F72EE9A7B0D5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{778E6E6F-DEC3-4BE7-8EDC-F72EE9A7B0D5} = {64664435-FD21-41AD-8AA4-A19FD9E0F485}
 	EndGlobalSection
 EndGlobal
