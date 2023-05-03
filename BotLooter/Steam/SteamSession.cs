@@ -16,13 +16,14 @@ public class SteamSession
     private CookieContainer? _cookieContainer;
 
     private readonly AsyncRetryPolicy<bool> _acceptConfirmationPolicy;
-    
+    private readonly RetryPolicy<LoginResult> _loginPolicy;
+
     public SteamSession(SteamAccountCredentials credentials, RestClient restClient)
     {
         _credentials = credentials;
         _restClient = restClient;
         _userLogin = new UserLogin(credentials.Login, credentials.Password);
-        
+
         if (restClient.Options.Proxy is { } proxy)
         {
             credentials.SteamGuardAccount.Proxy = (WebProxy)proxy;
@@ -32,28 +33,29 @@ public class SteamSession
         _acceptConfirmationPolicy = Policy
             .HandleResult<bool>(x => x is false)
             .WaitAndRetryAsync(5, _ => TimeSpan.FromSeconds(5));
+
+        _loginPolicy = Policy
+            .HandleResult<LoginResult>(x => x != LoginResult.LoginOkay)
+            .WaitAndRetry(3, _ => TimeSpan.FromSeconds(30));
     }
 
-    public async ValueTask<bool> TryEnsureSession()
+    public async ValueTask<(bool IsSession, string Message)> TryEnsureSession()
     {
         _cookieContainer ??= CreateCookieContainerWithSession(_credentials.SteamGuardAccount.Session);
 
         if (await IsSessionAlive())
         {
-            return true;
+            return (true, "Сессия жива");
         }
 
         if (await TryRefreshSession())
         {
-            return true;
+            return (true, "Обновил сессию");
         }
 
-        if (TryLogin())
-        {
-            return true;
-        }
-
-        return false;
+        var loginResult = TryLogin();
+        
+        return (loginResult.Success, loginResult.Message);
     }
     
     private async ValueTask<bool> IsSessionAlive()
@@ -94,21 +96,28 @@ public class SteamSession
         return false;
     }
 
-    private bool TryLogin()
+    private (bool Success, string Message) TryLogin()
     {
-        _userLogin.TwoFactorCode = _credentials.SteamGuardAccount.GenerateSteamGuardCode();
-        
-        var result = _userLogin.DoLogin();
-
-        var isLoginOkay = result == LoginResult.LoginOkay;
-        
-        if (isLoginOkay)
+        var loginResult = _loginPolicy.Execute(() =>
         {
-            _credentials.SteamGuardAccount.Session = _userLogin.Session;
-            _cookieContainer = CreateCookieContainerWithSession(_userLogin.Session);
+            _userLogin.TwoFactorCode = _credentials.SteamGuardAccount.GenerateSteamGuardCode();
+        
+            var result = _userLogin.DoLogin();
+
+            return result;
+        });
+       
+        var isLoginOkay = loginResult == LoginResult.LoginOkay;
+
+        if (!isLoginOkay)
+        {
+            return (false, "Ошибка авторизации: " + loginResult);
         }
         
-        return isLoginOkay;
+        _credentials.SteamGuardAccount.Session = _userLogin.Session;
+        _cookieContainer = CreateCookieContainerWithSession(_userLogin.Session);
+
+        return (true, "Авторизовался");
     }
 
     private CookieContainer CreateCookieContainerWithSession(SessionData sessionData)

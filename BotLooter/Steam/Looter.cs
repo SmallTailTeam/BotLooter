@@ -36,9 +36,11 @@ public class Looter
 
             var session = new SteamSession(credentials, restClient);
 
-            if (!await session.TryEnsureSession())
+            var (isSession, ensureSessionMessage) = await session.TryEnsureSession();
+            
+            if (!isSession)
             {
-                Console.WriteLine($"{prefix} Не смог получить валидную сессию");
+                Console.WriteLine($"{prefix} {ensureSessionMessage}");
                 continue;
             }
             
