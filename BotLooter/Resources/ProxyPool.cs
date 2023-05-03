@@ -24,7 +24,7 @@ public class ProxyPool
         {
             _proxyIndex = 0;
         }
-        
+
         return proxiedClient;
     }
     

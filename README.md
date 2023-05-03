@@ -1,5 +1,7 @@
 ### Формат конфига
+
 Config.json
+
 ```json
 {
   "LootTradeOfferUrl": "https://...",
