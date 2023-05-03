@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using BotLooter.Steam.Contracts;
+using Newtonsoft.Json;
 
 namespace BotLooter.Resources;
 
@@ -12,12 +13,12 @@ public class Configuration
 
     public static async Task<(Configuration? Config, string Message)> TryLoadFromFile()
     {
-        if (!File.Exists("Config.json"))
+        if (!File.Exists("BotLooter.Config.json"))
         {
-            return (null, "Файл Config.json не найден");
+            return (null, "Файл 'BotLooter.Config.json' не найден");
         }
 
-        var contents = await File.ReadAllTextAsync("Config.json");
+        var contents = await File.ReadAllTextAsync("BotLooter.Config.json");
 
         try
         {
@@ -25,12 +26,12 @@ public class Configuration
 
             if (config is null)
             {
-                return (null, "Не удалось десериализовать конфиг");
+                return (null, "Конфиг имеет неверный формат");
             }
 
-            if (string.IsNullOrWhiteSpace(config.LootTradeOfferUrl))
+            if (new TradeOfferUrl(config.LootTradeOfferUrl) is not { IsValid: true })
             {
-                return (null, "Параметр конфига 'LootTradeOfferUrl' не заполнен");
+                return (null, "Параметр конфига 'LootTradeOfferUrl' не заполнен или заполнен неверно");
             }
             
             return (config, "");

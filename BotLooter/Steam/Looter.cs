@@ -13,8 +13,6 @@ public class Looter
             var restClient = proxyPool.Provide();
 
             var session = new SteamSession(credentials, restClient);
-            
-            Console.WriteLine($"{credentials.Login}: Лутаю");
 
             if (!await session.TryEnsureSession())
             {

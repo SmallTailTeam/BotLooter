@@ -80,11 +80,6 @@ public class SteamSession
 
             var isSessionOkay = await IsSessionAlive();
 
-            if (isSessionOkay)
-            {
-                Console.WriteLine($"{_credentials.Login}: Сессия обновлена");
-            }
-            
             return isSessionOkay;
         }
 
@@ -103,8 +98,6 @@ public class SteamSession
         {
             _credentials.SteamGuardAccount.Session = _userLogin.Session;
             _cookieContainer = CreateCookieContainerWithSession(_userLogin.Session);
-            
-            Console.WriteLine($"{_credentials.Login}: Авторизован");
         }
         
         return isLoginOkay;
