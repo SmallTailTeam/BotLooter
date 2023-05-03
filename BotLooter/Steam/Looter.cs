@@ -19,96 +19,110 @@ public class Looter
             .WaitAndRetryAsync(3, _ => TimeSpan.FromSeconds(10));
     }
 
-    public async Task Loot(List<SteamAccountCredentials> accountCredentials, ProxyPool proxyPool, TradeOfferUrl tradeOfferUrl, int delaySeconds)
+    public async Task Loot(List<SteamAccountCredentials> accountCredentials, ProxyPool proxyPool, TradeOfferUrl tradeOfferUrl, Configuration config)
     {
         var counter = 0;
         
         foreach (var credentials in accountCredentials)
         {
-            if (++counter != 0)
-            {
-                await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
-            }
+            counter++;
+            
+            var lootResult = await TryLootAccount(credentials, proxyPool, tradeOfferUrl);
 
             var prefix = $"{counter}/{accountCredentials.Count} {credentials.Login}:";
             
-            var restClient = proxyPool.Provide();
+            Console.WriteLine($"{prefix} {lootResult.Message}");
 
-            var session = new SteamSession(credentials, restClient);
-
-            var (isSession, ensureSessionMessage) = await session.TryEnsureSession();
-            
-            if (!isSession)
-            {
-                Console.WriteLine($"{prefix} {ensureSessionMessage}");
-                continue;
-            }
-            
-            var web = new SteamWeb(session);
-        
-            var (assets, getAssetsMessage) = await GetAssetsToSend(web, credentials.SteamGuardAccount.Session.SteamID);
-
-            if (assets is null)
-            {
-                Console.WriteLine($"{prefix} {getAssetsMessage}");
-                continue;
-            }
-
-            var tradeOffer = new JsonTradeOffer
-            {
-                NewVersion = true,
-                Version = 4
-            };
-        
-            foreach (var inventoryAsset in assets)
-            {
-                var asset = new TradeOfferAsset
-                {
-                    AppId = $"{inventoryAsset.Appid}",
-                    ContextId = $"{inventoryAsset.Contextid}",
-                    Amount = 1,
-                    AssetId = inventoryAsset.Assetid
-                };
-            
-                tradeOffer.Me.Assets.Add(asset);
-            }
-
-            var sendTradeOfferResponse = await web.SendTradeOffer(tradeOfferUrl, tradeOffer);
-
-            if (sendTradeOfferResponse.StatusCode != HttpStatusCode.OK ||
-                sendTradeOfferResponse.Data is not {} sendTradeOfferData || 
-                !ulong.TryParse(sendTradeOfferData.TradeofferId, out var tradeOfferId))
-            {
-                Console.WriteLine($"{prefix} Не смог отправить обмен - {sendTradeOfferResponse.StatusCode} {sendTradeOfferResponse.Content}");
-                continue;
-            }
-
-            var confirmationResult = await session.AcceptConfirmation(tradeOfferId);
-
-            if (!confirmationResult)
-            {
-                Console.WriteLine($"{prefix} Не смог подтвердить обмен");
-                continue;
-            }
-            
-            Console.WriteLine($"{prefix} Залутан! Предметов: {tradeOffer.Me.Assets.Count}");
+            await WaitForNextLoot(lootResult.Message, config);
         }
+    }
+
+    private async Task<(int? LootedItemCount, string Message)> TryLootAccount(SteamAccountCredentials credentials, ProxyPool proxyPool, TradeOfferUrl tradeOfferUrl)
+    {
+        var restClient = proxyPool.Provide();
+
+        var session = new SteamSession(credentials, restClient);
+
+        var (isSession, ensureSessionMessage) = await session.TryEnsureSession();
+
+        if (!isSession)
+        {
+            return (null, ensureSessionMessage);
+        }
+
+        var web = new SteamWeb(session);
+
+        var (assets, getAssetsMessage) = await GetAssetsToSend(web, credentials.SteamGuardAccount.Session.SteamID);
+
+        if (assets is null)
+        {
+            return (null, getAssetsMessage);
+        }
+
+        if (assets.Count < 1)
+        {
+            return (null, "Пустой инвентарь");
+        }
+
+        var tradeOffer = new JsonTradeOffer
+        {
+            NewVersion = true,
+            Version = 4
+        };
+
+        foreach (var inventoryAsset in assets)
+        {
+            var asset = new TradeOfferAsset
+            {
+                AppId = $"{inventoryAsset.Appid}",
+                ContextId = $"{inventoryAsset.Contextid}",
+                Amount = 1,
+                AssetId = inventoryAsset.Assetid
+            };
+
+            tradeOffer.Me.Assets.Add(asset);
+        }
+
+        var sendTradeOfferResponse = await web.SendTradeOffer(tradeOfferUrl, tradeOffer);
+
+        if (sendTradeOfferResponse.StatusCode != HttpStatusCode.OK ||
+            sendTradeOfferResponse.Data is not { } sendTradeOfferData ||
+            !ulong.TryParse(sendTradeOfferData.TradeofferId, out var tradeOfferId))
+        {
+            return (null, $"Не смог отправить обмен - {sendTradeOfferResponse.StatusCode} {sendTradeOfferResponse.Content}");
+        }
+
+        var confirmationResult = await session.AcceptConfirmation(tradeOfferId);
+
+        if (!confirmationResult)
+        {
+            return (null, "Не смог подтвердить обмен");
+        }
+
+        return (tradeOffer.Me.Assets.Count, $"Залутан! Предметов: {tradeOffer.Me.Assets.Count}");
     }
 
     private async Task<(List<Asset>? Assets, string message)> GetAssetsToSend(SteamWeb web, ulong steamId64)
     {
         var inventoryResponse = await _getInventoryPolicy.ExecuteAsync(() => web.GetInventory(steamId64, 730, 2));
 
-        if (inventoryResponse.Data is not { } inventoryData)
+        if (inventoryResponse.Data is not { Assets: not null } inventoryData)
         {
             return (null, $"Не смог получить инвентарь. StatusCode: {inventoryResponse.StatusCode}");
         }
 
-        if (inventoryData.Assets is null || inventoryData.Assets.Count < 1)
-        {
-            return (null, "Пустой инвентарь");
-        }
-
         return (inventoryData.Assets, "");
+    }
+
+    private async Task WaitForNextLoot(string message, Configuration config)
+    {
+        if (message == "Пустой инвентарь")
+        {
+            await Task.Delay(TimeSpan.FromSeconds(config.DelayInventoryEmptySeconds));
+        }
+        else
+        {
+            await Task.Delay(TimeSpan.FromSeconds(config.DelayBetweenAccountsSeconds));
+        }
     }
 }

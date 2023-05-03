@@ -45,6 +45,6 @@ FlowUtils.WaitForApproval($"Загружено аккаунтов для лут�
 
 var looter = new Looter();
 
-await looter.Loot(credentials, proxyPool, config.LootTradeOfferUrl, config.DelayBetweenAccountsSeconds);
+await looter.Loot(credentials, proxyPool, config.LootTradeOfferUrl, config);
 
 Console.ReadLine();
