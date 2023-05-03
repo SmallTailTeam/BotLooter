@@ -8,15 +8,24 @@ public class Looter
 {
     public async Task Loot(List<SteamAccountCredentials> accountCredentials, ProxyPool proxyPool, TradeOfferUrl tradeOfferUrl, int delaySeconds)
     {
+        var counter = 0;
+        
         foreach (var credentials in accountCredentials)
         {
+            if (++counter != 0)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
+            }
+
+            var prefix = $"{counter}/{accountCredentials.Count} {credentials.Login}:";
+            
             var restClient = proxyPool.Provide();
 
             var session = new SteamSession(credentials, restClient);
 
             if (!await session.TryEnsureSession())
             {
-                Console.WriteLine($"{credentials.Login}: Не смог получить валидную сессию");
+                Console.WriteLine($"{prefix} Не смог получить валидную сессию");
                 continue;
             }
             
@@ -26,13 +35,13 @@ public class Looter
 
             if (inventoryResponse.Data is not { } inventoryData)
             {
-                Console.WriteLine($"{credentials.Login}: Не смог получить инвентарь - {inventoryResponse.StatusCode}");
+                Console.WriteLine($"{prefix} Не смог получить инвентарь - {inventoryResponse.StatusCode}");
                 continue;
             }
 
             if (inventoryData.Assets is null || inventoryData.Assets.Count < 1)
             {
-                Console.WriteLine($"{credentials.Login}: Пустой инвентарь");
+                Console.WriteLine($"{prefix} Пустой инвентарь");
                 continue;
             }
 
@@ -61,7 +70,7 @@ public class Looter
                 sendTradeOfferResponse.Data is not {} sendTradeOfferData || 
                 !ulong.TryParse(sendTradeOfferData.TradeofferId, out var tradeOfferId))
             {
-                Console.WriteLine($"{credentials.Login}: Не смог отправить обмен - {sendTradeOfferResponse.StatusCode} {sendTradeOfferResponse.Content}");
+                Console.WriteLine($"{prefix} Не смог отправить обмен - {sendTradeOfferResponse.StatusCode} {sendTradeOfferResponse.Content}");
                 continue;
             }
 
@@ -69,13 +78,11 @@ public class Looter
 
             if (!confirmationResult)
             {
-                Console.WriteLine($"{credentials.Login}: Не смог подтвердить обмен");
+                Console.WriteLine($"{prefix} Не смог подтвердить обмен");
                 continue;
             }
             
-            Console.WriteLine($"{credentials.Login}: Залутан! Предметов: {tradeOffer.Me.Assets.Count}");
-
-            await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
+            Console.WriteLine($"{prefix} Залутан! Предметов: {tradeOffer.Me.Assets.Count}");
         }
     }
 }
