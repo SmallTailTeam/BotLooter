@@ -6,7 +6,7 @@ namespace BotLooter.Steam;
 
 public class Looter
 {
-    public async Task Loot(List<SteamAccountCredentials> accountCredentials, ProxyPool proxyPool, TradeOfferUrl tradeOfferUrl)
+    public async Task Loot(List<SteamAccountCredentials> accountCredentials, ProxyPool proxyPool, TradeOfferUrl tradeOfferUrl, int delaySeconds)
     {
         foreach (var credentials in accountCredentials)
         {
@@ -77,7 +77,7 @@ public class Looter
             
             Console.WriteLine($"{credentials.Login}: Залутан! Предметов: {tradeOffer.Me.Assets.Count}");
 
-            await Task.Delay(TimeSpan.FromSeconds(1));
+            await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
         }
     }
 }

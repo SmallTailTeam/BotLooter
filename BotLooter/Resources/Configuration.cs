@@ -8,6 +8,7 @@ public class Configuration
     public string SecretsDirectoryPath { get; set; } = "secrets";
     public string AccountsFilePath { get; set; } = "accounts.txt";
     public string ProxiesFilePath { get; set; } = "proxies.txt";
+    public int DelayBetweenAccountsSeconds { get; set; } = 3;
 
     public static async Task<(Configuration? Config, string Message)> TryLoadFromFile()
     {
