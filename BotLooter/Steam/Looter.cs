@@ -35,7 +35,7 @@ public class Looter
 
             if (inventoryResponse.Data is not { } inventoryData)
             {
-                Console.WriteLine($"{prefix} Не смог получить инвентарь - {inventoryResponse.StatusCode}");
+                Console.WriteLine($"{prefix} Не смог получить инвентарь. StatusCode: {inventoryResponse.StatusCode}");
                 continue;
             }
 

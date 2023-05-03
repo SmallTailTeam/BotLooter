@@ -1,5 +1,7 @@
 ﻿using System.Net;
 using BotLooter.Resources;
+using Polly;
+using Polly.Retry;
 using RestSharp;
 using SteamAuth;
 
@@ -13,6 +15,8 @@ public class SteamSession
     private readonly UserLogin _userLogin;
     private CookieContainer? _cookieContainer;
 
+    private readonly AsyncRetryPolicy<bool> _acceptConfirmationPolicy;
+    
     public SteamSession(SteamAccountCredentials credentials, RestClient restClient)
     {
         _credentials = credentials;
@@ -24,6 +28,10 @@ public class SteamSession
             credentials.SteamGuardAccount.Proxy = (WebProxy)proxy;
             _userLogin.Proxy = (WebProxy)proxy;
         }
+
+        _acceptConfirmationPolicy = Policy
+            .HandleResult<bool>(x => x is false)
+            .WaitAndRetryAsync(5, _ => TimeSpan.FromSeconds(5));
     }
 
     public async ValueTask<bool> TryEnsureSession()
@@ -121,21 +129,24 @@ public class SteamSession
 
     public async ValueTask<bool> AcceptConfirmation(ulong id)
     {
-        var confirmations = await _credentials.SteamGuardAccount.FetchConfirmationsAsync();
-                         
-        foreach (var confirmation in confirmations ?? Enumerable.Empty<Confirmation>())
+        return await _acceptConfirmationPolicy.ExecuteAsync(async () =>
         {
-            if (confirmation.Creator != id)
-            {
-                continue;
-            }
+            var confirmations = await _credentials.SteamGuardAccount.FetchConfirmationsAsync();
                          
-            var isConfirmed = _credentials.SteamGuardAccount.AcceptConfirmation(confirmation);
+            foreach (var confirmation in confirmations ?? Enumerable.Empty<Confirmation>())
+            {
+                if (confirmation.Creator != id)
+                {
+                    continue;
+                }
+                         
+                var isConfirmed = _credentials.SteamGuardAccount.AcceptConfirmation(confirmation);
 
-            return isConfirmed;
-        }
+                return isConfirmed;
+            }
                                      
-        return false;
+            return false;
+        });
     }
     
     public async ValueTask<RestResponse> WebRequest(RestRequest request, bool withSession = false)
