@@ -1,6 +1,6 @@
 ### Формат конфига
 
-Config.json
+BotLooter.Config.json
 
 ```json
 {
