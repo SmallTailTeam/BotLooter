@@ -12,16 +12,11 @@ public class Looter
         {
             var restClient = proxyPool.Provide();
 
-            if (restClient.Options.Proxy is { } proxy)
-            {
-                credentials.SteamGuardAccount.Proxy = (WebProxy)proxy;
-            }
-
             var session = new SteamSession(credentials, restClient);
             
             Console.WriteLine($"{credentials.Login}: Лутаю");
 
-            if (!await session.CheckSession())
+            if (!await session.TryEnsureSession())
             {
                 Console.WriteLine($"{credentials.Login}: Не смог получить валидную сессию");
                 continue;

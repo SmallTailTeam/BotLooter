@@ -10,68 +10,42 @@ public class SteamSession
     private readonly SteamAccountCredentials _credentials;
     private readonly RestClient _restClient;
 
+    private readonly UserLogin _userLogin;
     private CookieContainer? _cookieContainer;
 
     public SteamSession(SteamAccountCredentials credentials, RestClient restClient)
     {
         _credentials = credentials;
         _restClient = restClient;
-    }
-    
-    public async ValueTask<bool> AcceptConfirmation(ulong id)
-    {
-        var confirmations = await _credentials.SteamGuardAccount.FetchConfirmationsAsync();
-                         
-        foreach (var confirmation in confirmations ?? Enumerable.Empty<Confirmation>())
+        _userLogin = new UserLogin(credentials.Login, credentials.Password);
+        
+        if (restClient.Options.Proxy is { } proxy)
         {
-            if (confirmation.Creator != id)
-            {
-                continue;
-            }
-                         
-            var isConfirmed = _credentials.SteamGuardAccount.AcceptConfirmation(confirmation);
-
-            return isConfirmed;
+            credentials.SteamGuardAccount.Proxy = (WebProxy)proxy;
+            _userLogin.Proxy = (WebProxy)proxy;
         }
-                                     
-        return false;
     }
 
-    public async ValueTask<bool> CheckSession()
+    public async ValueTask<bool> TryEnsureSession()
     {
-        _cookieContainer ??= CreateCookieContainerWithSession();
+        _cookieContainer ??= CreateCookieContainerWithSession(_credentials.SteamGuardAccount.Session);
 
         if (await IsSessionAlive())
         {
             return true;
         }
 
-        if (await _credentials.SteamGuardAccount.RefreshSessionAsync())
+        if (await TryRefreshSession())
         {
-            _cookieContainer = CreateCookieContainerWithSession();
-        
-            return await IsSessionAlive();
+            return true;
         }
 
-        // TODO: Relogin
+        if (TryLogin())
+        {
+            return true;
+        }
 
         return false;
-    }
-    
-    private CookieContainer CreateCookieContainerWithSession()
-    {
-        var cookieContainer = new CookieContainer();
-
-        const string sessionDomain = "steamcommunity.com";
-        const string storeSessionDomain = "store.steampowered.com";
-
-        cookieContainer.Add(new Cookie("sessionid", _credentials.SteamGuardAccount.Session.SessionID, "/", sessionDomain));
-        cookieContainer.Add(new Cookie("steamLoginSecure", _credentials.SteamGuardAccount.Session.SteamLoginSecure, "/", sessionDomain));
-
-        cookieContainer.Add(new Cookie("sessionid", _credentials.SteamGuardAccount.Session.SessionID, "/", storeSessionDomain));
-        cookieContainer.Add(new Cookie("steamLoginSecure", _credentials.SteamGuardAccount.Session.SteamLoginSecure, "/", storeSessionDomain));
-
-        return cookieContainer;
     }
     
     private async ValueTask<bool> IsSessionAlive()
@@ -96,6 +70,70 @@ public class SteamSession
         var response = await WebRequest(request);
         
         return response.ResponseUri is not null && !response.ResponseUri.AbsolutePath.StartsWith("/login");
+    }
+
+    private async ValueTask<bool> TryRefreshSession()
+    {
+        if (await _credentials.SteamGuardAccount.RefreshSessionAsync())
+        {
+            _cookieContainer = CreateCookieContainerWithSession(_credentials.SteamGuardAccount.Session);
+        
+            return await IsSessionAlive();
+        }
+
+        return false;
+    }
+
+    private bool TryLogin()
+    {
+        _userLogin.TwoFactorCode = _credentials.SteamGuardAccount.GenerateSteamGuardCode();
+        
+        var result = _userLogin.DoLogin();
+
+        var isLoginOkay = result == LoginResult.LoginOkay;
+        
+        if (isLoginOkay)
+        {
+            _credentials.SteamGuardAccount.Session = _userLogin.Session;
+            _cookieContainer = CreateCookieContainerWithSession(_userLogin.Session);
+        }
+        
+        return isLoginOkay;
+    }
+
+    private CookieContainer CreateCookieContainerWithSession(SessionData sessionData)
+    {
+        var cookieContainer = new CookieContainer();
+
+        const string sessionDomain = "steamcommunity.com";
+        const string storeSessionDomain = "store.steampowered.com";
+
+        cookieContainer.Add(new Cookie("sessionid", sessionData.SessionID, "/", sessionDomain));
+        cookieContainer.Add(new Cookie("steamLoginSecure", sessionData.SteamLoginSecure, "/", sessionDomain));
+
+        cookieContainer.Add(new Cookie("sessionid", sessionData.SessionID, "/", storeSessionDomain));
+        cookieContainer.Add(new Cookie("steamLoginSecure", sessionData.SteamLoginSecure, "/", storeSessionDomain));
+
+        return cookieContainer;
+    }
+
+    public async ValueTask<bool> AcceptConfirmation(ulong id)
+    {
+        var confirmations = await _credentials.SteamGuardAccount.FetchConfirmationsAsync();
+                         
+        foreach (var confirmation in confirmations ?? Enumerable.Empty<Confirmation>())
+        {
+            if (confirmation.Creator != id)
+            {
+                continue;
+            }
+                         
+            var isConfirmed = _credentials.SteamGuardAccount.AcceptConfirmation(confirmation);
+
+            return isConfirmed;
+        }
+                                     
+        return false;
     }
     
     public async ValueTask<RestResponse> WebRequest(RestRequest request, bool withSession = false)
