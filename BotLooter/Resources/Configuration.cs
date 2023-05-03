@@ -20,25 +20,29 @@ public class Configuration
 
         var contents = await File.ReadAllTextAsync("BotLooter.Config.json");
 
+        Configuration config;
+        
         try
         {
-            var config = JsonConvert.DeserializeObject<Configuration>(contents);
+            var deserialized = JsonConvert.DeserializeObject<Configuration>(contents);
 
-            if (config is null)
+            if (deserialized is null)
             {
                 return (null, "Конфиг имеет неверный формат");
             }
 
-            if (new TradeOfferUrl(config.LootTradeOfferUrl) is not { IsValid: true })
-            {
-                return (null, "Параметр конфига 'LootTradeOfferUrl' не заполнен или заполнен неверно");
-            }
-            
-            return (config, "");
+            config = deserialized;
         }
         catch
         {
             return (null, "Конфиг имеет неверный формат");
         }
+        
+        if (new TradeOfferUrl(config.LootTradeOfferUrl) is not { IsValid: true })
+        {
+            return (null, "Параметр конфига 'LootTradeOfferUrl' не заполнен или заполнен неверно");
+        }
+            
+        return (config, "");
     }
 }
