@@ -38,7 +38,7 @@ public class Configuration
         }
         catch
         {
-            return (null, "Не удалось десериализовать конфиг");
+            return (null, "Конфиг имеет неверный формат");
         }
     }
 }
