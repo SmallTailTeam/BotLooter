@@ -1,11 +1,24 @@
 ﻿using System.Net;
 using BotLooter.Resources;
 using BotLooter.Steam.Contracts;
+using BotLooter.Steam.Contracts.Responses;
+using Polly;
+using Polly.Retry;
+using RestSharp;
 
 namespace BotLooter.Steam;
 
 public class Looter
 {
+    private readonly AsyncRetryPolicy<RestResponse<GetInventoryResponse>> _getInventoryPolicy;
+
+    public Looter()
+    {
+        _getInventoryPolicy = Policy
+            .HandleResult<RestResponse<GetInventoryResponse>>(x => x.Data is null)
+            .WaitAndRetryAsync(3, _ => TimeSpan.FromSeconds(10));
+    }
+
     public async Task Loot(List<SteamAccountCredentials> accountCredentials, ProxyPool proxyPool, TradeOfferUrl tradeOfferUrl, int delaySeconds)
     {
         var counter = 0;
@@ -31,17 +44,11 @@ public class Looter
             
             var web = new SteamWeb(session);
         
-            var inventoryResponse = await web.GetInventory(credentials.SteamGuardAccount.Session.SteamID, 730, 2);
+            var (assets, getAssetsMessage) = await GetAssetsToSend(web, credentials.SteamGuardAccount.Session.SteamID);
 
-            if (inventoryResponse.Data is not { } inventoryData)
+            if (assets is null)
             {
-                Console.WriteLine($"{prefix} Не смог получить инвентарь. StatusCode: {inventoryResponse.StatusCode}");
-                continue;
-            }
-
-            if (inventoryData.Assets is null || inventoryData.Assets.Count < 1)
-            {
-                Console.WriteLine($"{prefix} Пустой инвентарь");
+                Console.WriteLine($"{prefix} {getAssetsMessage}");
                 continue;
             }
 
@@ -51,12 +58,12 @@ public class Looter
                 Version = 4
             };
         
-            foreach (var inventoryAsset in inventoryData.Assets)
+            foreach (var inventoryAsset in assets)
             {
                 var asset = new TradeOfferAsset
                 {
-                    AppId = "730",
-                    ContextId = "2",
+                    AppId = $"{inventoryAsset.Appid}",
+                    ContextId = $"{inventoryAsset.Contextid}",
                     Amount = 1,
                     AssetId = inventoryAsset.Assetid
                 };
@@ -84,5 +91,22 @@ public class Looter
             
             Console.WriteLine($"{prefix} Залутан! Предметов: {tradeOffer.Me.Assets.Count}");
         }
+    }
+
+    private async Task<(List<Asset>? Assets, string message)> GetAssetsToSend(SteamWeb web, ulong steamId64)
+    {
+        var inventoryResponse = await _getInventoryPolicy.ExecuteAsync(() => web.GetInventory(steamId64, 730, 2));
+
+        if (inventoryResponse.Data is not { } inventoryData)
+        {
+            return (null, $"Не смог получить инвентарь. StatusCode: {inventoryResponse.StatusCode}");
+        }
+
+        if (inventoryData.Assets is null || inventoryData.Assets.Count < 1)
+        {
+            return (null, "Пустой инвентарь");
+        }
+
+        return (inventoryData.Assets, "");
     }
 }
