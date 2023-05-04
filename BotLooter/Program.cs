@@ -2,7 +2,6 @@
 using BotLooter;
 using BotLooter.Resources;
 using BotLooter.Steam;
-using RestSharp;
 
 Console.OutputEncoding = Encoding.UTF8;
 
@@ -23,15 +22,12 @@ if (configLoadResult.Config is not {} config)
     return;
 }
 
-var proxyPoolLoadResult = await ProxyPool.TryLoadFromFile(config.ProxiesFilePath);
+var clientProvider = await GetClientProvider(config);
 
-if (proxyPoolLoadResult.ProxyPool is not { } proxyPool)
+if (clientProvider is null)
 {
-    FlowUtils.AbortWithError(proxyPoolLoadResult.Message);
     return;
 }
-
-FlowUtils.WaitForApproval($"Загружено прокси: {proxyPool.ProxyCount}");
 
 var credentialsLoadResult = await SteamAccountCredentials.TryLoadFromFiles(config.AccountsFilePath, config.SecretsDirectoryPath);
 
@@ -45,6 +41,38 @@ FlowUtils.WaitForApproval($"Загружено аккаунтов для лут�
 
 var looter = new Looter();
 
-await looter.Loot(credentials, proxyPool, config.LootTradeOfferUrl, config);
+await looter.Loot(credentials, clientProvider, config.LootTradeOfferUrl, config);
 
 Console.ReadLine();
+
+async Task<IClientProvider?> GetClientProvider(Configuration config)
+{
+    if (string.IsNullOrWhiteSpace(config.ProxiesFilePath))
+    {
+        var provider = new LocalClientProvider();
+
+        FlowUtils.WaitForApproval("Прокси не указаны, используется локальный клиент");
+        
+        return provider;
+    }
+    else
+    {
+        var proxyPoolLoadResult = await ProxyClientProvider.TryLoadFromFile(config.ProxiesFilePath);
+
+        if (proxyPoolLoadResult.ProxyPool is not { } proxyPool)
+        {
+            FlowUtils.AbortWithError(proxyPoolLoadResult.Message);
+            return null;
+        }
+
+        if (proxyPool.ProxyCount == 0)
+        {
+            FlowUtils.AbortWithError("В файле с прокси отсутствуют прокси");
+            return null;
+        }
+        
+        FlowUtils.WaitForApproval($"Загружено прокси: {proxyPool.ProxyCount}");
+
+        return proxyPool;
+    }
+}

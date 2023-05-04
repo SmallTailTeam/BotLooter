@@ -5,7 +5,7 @@ namespace BotLooter.Steam;
 
 public class Looter
 {
-    public async Task Loot(List<SteamAccountCredentials> accountCredentials, ProxyPool proxyPool, TradeOfferUrl tradeOfferUrl, Configuration config)
+    public async Task Loot(List<SteamAccountCredentials> accountCredentials, IClientProvider clientProvider, TradeOfferUrl tradeOfferUrl, Configuration config)
     {
         var counter = 0;
         
@@ -13,7 +13,7 @@ public class Looter
         {
             counter++;
 
-            var restClient = proxyPool.Provide();
+            var restClient = clientProvider.Provide();
             
             var steamSession = new SteamSession(credentials, restClient);
             var steamWeb = new SteamWeb(steamSession);
