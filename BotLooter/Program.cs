@@ -67,7 +67,7 @@ async Task<IClientProvider?> GetClientProvider()
 
         if (proxyPool.ProxyCount == 0)
         {
-            FlowUtils.AbortWithError("В файле с прокси отсутствуют прокси");
+            FlowUtils.AbortWithError($"В файле '{config.ProxiesFilePath}' отсутствуют прокси");
             return null;
         }
         
