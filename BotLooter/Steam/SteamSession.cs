@@ -126,12 +126,17 @@ public class SteamSession
 
         const string sessionDomain = "steamcommunity.com";
         const string storeSessionDomain = "store.steampowered.com";
+        const string helpSessionDomain = "help.steampowered.com";
 
         cookieContainer.Add(new Cookie("sessionid", sessionData.SessionID, "/", sessionDomain));
         cookieContainer.Add(new Cookie("steamLoginSecure", sessionData.SteamLoginSecure, "/", sessionDomain));
 
         cookieContainer.Add(new Cookie("sessionid", sessionData.SessionID, "/", storeSessionDomain));
         cookieContainer.Add(new Cookie("steamLoginSecure", sessionData.SteamLoginSecure, "/", storeSessionDomain));
+
+
+        cookieContainer.Add(new Cookie("sessionid", sessionData.SessionID, "/", helpSessionDomain));
+        cookieContainer.Add(new Cookie("steamLoginSecure", sessionData.SteamLoginSecure, "/", helpSessionDomain));
 
         return cookieContainer;
     }

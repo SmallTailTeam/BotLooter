@@ -67,24 +67,14 @@ public class LootClient
             tradeOffer.Me.Assets.Add(asset);
         }
 
-        var sendTradeOfferResponse = await _steamWeb.SendTradeOffer(tradeOfferUrl, tradeOffer);
+        var (tradeOfferId, sendTradeOfferMessage) = await SendTradeOffer(tradeOfferUrl, tradeOffer);
 
-        if (sendTradeOfferResponse.StatusCode != HttpStatusCode.OK || sendTradeOfferResponse.Data is not { } sendTradeOfferData)
+        if (tradeOfferId is null)
         {
-            return (null, $"Не смог отправить обмен - {sendTradeOfferResponse.StatusCode} {sendTradeOfferResponse.Content}");
+            return (null, sendTradeOfferMessage);
         }
 
-        if (!string.IsNullOrWhiteSpace(sendTradeOfferData.Error))
-        {
-            return (null, $"Не смог отправить обмен - {sendTradeOfferData.Error}");
-        }
-
-        if (!ulong.TryParse(sendTradeOfferData.TradeofferId, out var tradeOfferId))
-        {
-            return (null, $"Не смог получить айди обмена - {sendTradeOfferResponse.StatusCode} {sendTradeOfferResponse.Content}");
-        }
-
-        var confirmationResult = await _steamSession.AcceptConfirmation(tradeOfferId);
+        var confirmationResult = await _steamSession.AcceptConfirmation(tradeOfferId.Value);
 
         if (!confirmationResult)
         {
@@ -109,5 +99,34 @@ public class LootClient
         }
 
         return (inventoryData.Assets, "");
+    }
+
+    private async Task<(ulong? TradeOfferId, string Message)> SendTradeOffer(TradeOfferUrl tradeOfferUrl, JsonTradeOffer tradeOffer)
+    {
+        var sendTradeOfferResponse = await _steamWeb.SendTradeOffer(tradeOfferUrl, tradeOffer);
+
+        if (sendTradeOfferResponse.StatusCode != HttpStatusCode.OK || sendTradeOfferResponse.Data is not { } sendTradeOfferData)
+        {
+            return (null, $"Не смог отправить обмен - {sendTradeOfferResponse.StatusCode} {sendTradeOfferResponse.Content}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(sendTradeOfferData.Error))
+        {
+            if (sendTradeOfferData.Error.Contains("Steam Guard enabled for at least 15 days"))
+            {
+                var cantTradeTime = await _steamWeb.GetHelpWhyCantITradeTime();
+
+                return (null, $"Обмен будет доступен через {cantTradeTime}");
+            }
+            
+            return (null, $"Не смог отправить обмен - {sendTradeOfferData.Error}");
+        }
+
+        if (!ulong.TryParse(sendTradeOfferData.TradeofferId, out var tradeOfferId))
+        {
+            return (null, $"Не смог спарсить айди обмена - {sendTradeOfferResponse.StatusCode} {sendTradeOfferResponse.Content}");
+        }
+
+        return (tradeOfferId, "");
     }
 }

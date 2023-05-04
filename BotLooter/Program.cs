@@ -2,6 +2,7 @@
 using BotLooter;
 using BotLooter.Resources;
 using BotLooter.Steam;
+using SteamAuth;
 
 var version = new Version(0, 0, 2);
 
