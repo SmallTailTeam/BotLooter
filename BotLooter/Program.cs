@@ -22,7 +22,7 @@ if (configLoadResult.Config is not {} config)
     return;
 }
 
-var clientProvider = await GetClientProvider(config);
+var clientProvider = await GetClientProvider();
 
 if (clientProvider is null)
 {
@@ -45,7 +45,7 @@ await looter.Loot(credentials, clientProvider, config.LootTradeOfferUrl, config)
 
 Console.ReadLine();
 
-async Task<IClientProvider?> GetClientProvider(Configuration config)
+async Task<IClientProvider?> GetClientProvider()
 {
     if (string.IsNullOrWhiteSpace(config.ProxiesFilePath))
     {
