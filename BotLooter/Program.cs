@@ -3,12 +3,16 @@ using BotLooter;
 using BotLooter.Resources;
 using BotLooter.Steam;
 
+var version = new Version(0, 1, 0);
+
+Console.WriteLine($"BotLooter {version} https://github.com/SmallTailTeam/BotLooter");
+
 Console.OutputEncoding = Encoding.UTF8;
 
 AppDomain.CurrentDomain.UnhandledException += (_, eventArgs) =>
 {
     Console.ForegroundColor = ConsoleColor.Red;
-    Console.WriteLine("Исключение!");
+    Console.WriteLine("Исключение! Для расшифровки можете обратиться к разработчику.");
     Console.WriteLine();
     Console.WriteLine(eventArgs.ExceptionObject);
     Console.ReadKey();

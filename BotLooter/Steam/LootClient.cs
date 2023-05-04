@@ -69,11 +69,19 @@ public class LootClient
 
         var sendTradeOfferResponse = await _steamWeb.SendTradeOffer(tradeOfferUrl, tradeOffer);
 
-        if (sendTradeOfferResponse.StatusCode != HttpStatusCode.OK ||
-            sendTradeOfferResponse.Data is not { } sendTradeOfferData ||
-            !ulong.TryParse(sendTradeOfferData.TradeofferId, out var tradeOfferId))
+        if (sendTradeOfferResponse.StatusCode != HttpStatusCode.OK || sendTradeOfferResponse.Data is not { } sendTradeOfferData)
         {
             return (null, $"Не смог отправить обмен - {sendTradeOfferResponse.StatusCode} {sendTradeOfferResponse.Content}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(sendTradeOfferData.Error))
+        {
+            return (null, $"Не смог отправить обмен - {sendTradeOfferData.Error}");
+        }
+
+        if (!ulong.TryParse(sendTradeOfferData.TradeofferId, out var tradeOfferId))
+        {
+            return (null, $"Не смог получить айди обмена - {sendTradeOfferResponse.StatusCode} {sendTradeOfferResponse.Content}");
         }
 
         var confirmationResult = await _steamSession.AcceptConfirmation(tradeOfferId);
