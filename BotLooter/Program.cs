@@ -13,7 +13,7 @@ Console.OutputEncoding = Encoding.UTF8;
 AppDomain.CurrentDomain.UnhandledException += (_, eventArgs) =>
 {
     Console.ForegroundColor = ConsoleColor.Red;
-    Console.WriteLine("Исключение! Для расшифровки можете обратиться к разработчику.");
+    Console.WriteLine("Исключение! Для расшифровки можете обратиться к разработчику напрямую или оставить issue на GitHub.");
     Console.WriteLine();
     Console.WriteLine(eventArgs.ExceptionObject);
     Console.ReadKey();
