@@ -3,7 +3,7 @@ using BotLooter;
 using BotLooter.Resources;
 using BotLooter.Steam;
 
-var version = new Version(0, 1, 0);
+var version = new Version(0, 0, 2);
 
 Console.WriteLine($"BotLooter {version} https://github.com/SmallTailTeam/BotLooter");
 
