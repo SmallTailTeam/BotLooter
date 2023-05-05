@@ -105,7 +105,7 @@ public class LootClient
     {
         var sendTradeOfferResponse = await _steamWeb.SendTradeOffer(tradeOfferUrl, tradeOffer);
 
-        if (sendTradeOfferResponse.StatusCode != HttpStatusCode.OK || sendTradeOfferResponse.Data is not { } sendTradeOfferData)
+        if (sendTradeOfferResponse.Data is not { } sendTradeOfferData)
         {
             return (null, $"Не смог отправить обмен - {sendTradeOfferResponse.StatusCode} {sendTradeOfferResponse.Content}");
         }
