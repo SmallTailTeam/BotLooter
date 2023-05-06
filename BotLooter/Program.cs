@@ -3,7 +3,7 @@ using BotLooter;
 using BotLooter.Resources;
 using BotLooter.Steam;
 
-var version = new Version(0, 0, 2);
+var version = new Version(0, 0, 3);
 
 Console.WriteLine($"BotLooter {version} https://github.com/SmallTailTeam/BotLooter");
 
@@ -47,7 +47,7 @@ var looter = new Looter();
 
 await looter.Loot(credentials, clientProvider, config.LootTradeOfferUrl, config);
 
-Console.ReadLine();
+FlowUtils.WaitForExit("Лутание завершено");
 
 async Task<IClientProvider?> GetClientProvider()
 {
