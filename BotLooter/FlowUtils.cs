@@ -2,6 +2,8 @@
 
 public static class FlowUtils
 {
+    public static bool AskForApproval { get; set; }
+    
     public static void AbortWithError(string error)
     {
         Console.WriteLine(error);
@@ -13,9 +15,19 @@ public static class FlowUtils
     public static void WaitForApproval(string message)
     {
         Console.WriteLine(message);
-        Console.WriteLine("Нажмите любую клавишу для продолжения.");
-        Console.ReadKey();
-        Console.CursorLeft = 0;
+
+        if (AskForApproval)
+        {
+            Console.WriteLine("Нажмите любую клавишу для продолжения.");
+            Console.ReadKey();
+            Console.CursorLeft = 0;
+        }
+        else
+        {
+            Console.WriteLine("Ожидаю 5 секунд до продолжения.");
+            Thread.Sleep(TimeSpan.FromSeconds(5));
+            Console.CursorLeft = 0;
+        }
     }
 
     public static void WaitForExit(string message)

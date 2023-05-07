@@ -26,6 +26,8 @@ if (configLoadResult.Config is not {} config)
     return;
 }
 
+FlowUtils.AskForApproval = config.AskForApproval;
+
 var clientProvider = await GetClientProvider();
 
 if (clientProvider is null)
