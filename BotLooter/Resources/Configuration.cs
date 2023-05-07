@@ -11,6 +11,7 @@ public class Configuration
     public string ProxiesFilePath { get; set; } = "proxies.txt";
     public int DelayBetweenAccountsSeconds { get; set; } = 30;
     public int DelayInventoryEmptySeconds { get; set; } = 10;
+    public bool AskForApproval { get; set; } = true;
 
     public static async Task<(Configuration? Config, string Message)> TryLoadFromFile()
     {

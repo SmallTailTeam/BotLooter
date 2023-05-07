@@ -7,6 +7,8 @@ public class Looter
 {
     public async Task Loot(List<SteamAccountCredentials> accountCredentials, IClientProvider clientProvider, TradeOfferUrl tradeOfferUrl, Configuration config)
     {
+        Console.WriteLine("Начинаю лутать...");
+    
         var counter = 0;
         
         foreach (var credentials in accountCredentials)

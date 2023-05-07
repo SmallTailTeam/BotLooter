@@ -145,21 +145,29 @@ public class SteamSession
     {
         return await _acceptConfirmationPolicy.ExecuteAsync(async () =>
         {
-            var confirmations = await _credentials.SteamGuardAccount.FetchConfirmationsAsync();
-                         
-            foreach (var confirmation in confirmations ?? Enumerable.Empty<Confirmation>())
+            // Sometimes FetchConfirmationsAsync throws an exception, we probably don't want to exit the entire program when that happens
+            try
             {
-                if (confirmation.Creator != id)
-                {
-                    continue;
-                }
-                         
-                var isConfirmed = _credentials.SteamGuardAccount.AcceptConfirmation(confirmation);
+                var confirmations = await _credentials.SteamGuardAccount.FetchConfirmationsAsync();
 
-                return isConfirmed;
+                foreach (var confirmation in confirmations ?? Enumerable.Empty<Confirmation>())
+                {
+                    if (confirmation.Creator != id)
+                    {
+                        continue;
+                    }
+
+                    var isConfirmed = _credentials.SteamGuardAccount.AcceptConfirmation(confirmation);
+
+                    return isConfirmed;
+                }
+
+                return false;
             }
-                                     
-            return false;
+            catch
+            {
+                return false;
+            }
         });
     }
     
