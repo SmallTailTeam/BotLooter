@@ -4,17 +4,17 @@ BotLooter.Config.json
 
 ```json
 {
-  "LootTradeOfferUrl": "https://...",
+  "LootTradeOfferUrl": "",
   
   "SecretsDirectoryPath": "Secrets",
-  
   "AccountsFilePath": "Accounts.txt",
-  
   "ProxiesFilePath": "Proxies.txt",
   
   "DelayBetweenAccountsSeconds": 30,
   
-  "DelayInventoryEmptySeconds ": 10
+  "DelayInventoryEmptySeconds ": 10,
+  
+  "AskForApproval": true
 }
 ```
 
@@ -23,7 +23,8 @@ BotLooter.Config.json
 - `AccountsFilePath` - путь к файлу с аккаунтами формата username:password
 - `ProxiesFilePath` - путь к файлу с прокси формата `protocol://username:password@address:port` или `protocol://address:port`
 - `DelayBetweenAccountsSeconds` - задержка между аккаунтами в секундах
-- `DelayInventoryEmptySeconds ` - задержка при пустом инвентаре
+- `DelayInventoryEmptySeconds ` - задержка при пустом инвентаре в секундах
+- `AskForApproval ` - При значении true, для продолжения будет требоваться нажать любую клавишу, а при значении false, будет 5 секундное ожидание.
 
 ### Функционал
 
