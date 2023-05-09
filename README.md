@@ -43,3 +43,4 @@ BotLooter.Config.json
 ### Примеры
 
 ![Скриншот работы софта](Assets/Screenshot.png)
+a
