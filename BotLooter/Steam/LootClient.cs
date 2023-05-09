@@ -88,6 +88,8 @@ public class LootClient
     private async Task<(List<Asset>? Assets, string message)> GetAssetsToSend(SteamWeb web, ulong steamId64, List<string> inventories)
     {
         var assets = new List<Asset>();
+
+        var index = 0;
         
         foreach (var inventory in inventories)
         {
@@ -114,6 +116,15 @@ public class LootClient
             }
             
             assets.AddRange(inventoryAssets);
+
+            var isLast = index == inventories.Count - 1;
+            
+            if (!isLast)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(3));
+            }
+            
+            index++;
         }
 
         return (assets, "");
