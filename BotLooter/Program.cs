@@ -2,19 +2,22 @@
 using BotLooter;
 using BotLooter.Resources;
 using BotLooter.Steam;
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console(outputTemplate: "{Timestamp:HH:mm:ss} {Level:w3} : {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
 
 var version = new Version(0, 0, 4);
 
-Console.WriteLine($"BotLooter {version} https://github.com/SmallTailTeam/BotLooter");
+Log.Logger.Information("BotLooter {Version} https://github.com/SmallTailTeam/BotLooter", version);
 
 Console.OutputEncoding = Encoding.UTF8;
 
 AppDomain.CurrentDomain.UnhandledException += (_, eventArgs) =>
 {
-    Console.ForegroundColor = ConsoleColor.Red;
-    Console.WriteLine("Исключение! Для расшифровки можете обратиться к разработчику напрямую или оставить issue на GitHub.");
-    Console.WriteLine();
-    Console.WriteLine(eventArgs.ExceptionObject);
+    Log.Logger.Fatal((Exception)eventArgs.ExceptionObject, "Исключение! Для расшифровки можете обратиться к разработчику напрямую или оставить issue на GitHub.");
+    
     Console.ReadKey();
 };
 
@@ -43,7 +46,7 @@ if (credentialsLoadResult.LootAccounts is not { } accountCredentials)
     return;
 }
 
-FlowUtils.WaitForApproval($"Загружено аккаунтов для лута: {accountCredentials.Count}");
+FlowUtils.WaitForApproval("Загружено аккаунтов для лута: {Count}", accountCredentials.Count);
 
 var lootClients = new List<LootClient>();
 
@@ -58,7 +61,7 @@ foreach (var credentials in accountCredentials)
     lootClients.Add(lootClient);
 }
 
-var looter = new Looter();
+var looter = new Looter(Log.Logger);
 
 await looter.Loot(lootClients, config.LootTradeOfferUrl, config);
 
@@ -90,7 +93,7 @@ async Task<IClientProvider?> GetClientProvider()
             return null;
         }
         
-        FlowUtils.WaitForApproval($"Загружено прокси: {proxyPool.ProxyCount}");
+        FlowUtils.WaitForApproval("Загружено прокси: {Count}", proxyPool.ProxyCount);
 
         return proxyPool;
     }

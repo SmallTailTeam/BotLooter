@@ -1,13 +1,21 @@
 ﻿using BotLooter.Resources;
 using BotLooter.Steam.Contracts;
+using Serilog;
 
 namespace BotLooter.Steam;
 
 public class Looter
 {
+    private readonly ILogger _logger;
+
+    public Looter(ILogger logger)
+    {
+        _logger = logger;
+    }
+
     public async Task Loot(List<LootClient> lootClients, TradeOfferUrl tradeOfferUrl, Configuration config)
     {
-        Console.WriteLine($"Начинаю лутать. Потоков: {config.LootThreadCount}");
+        _logger.Information("Начинаю лутать. Потоков: {ThreadCount}", config.LootThreadCount);
     
         var counter = 0;
 
@@ -23,12 +31,12 @@ public class Looter
             
             var identifier = $"{lootClient.Credentials.Login}";
             
-            Console.WriteLine($" {progress} | {identifier} | {lootResult.Message}");
+            _logger.Information($"{progress} | {identifier} | {lootResult.Message}");
 
             await WaitForNextLoot(lootResult.Message, config);
         });
         
-        Console.WriteLine("Лутание завершено");
+        _logger.Information("Лутание завершено");
     }
 
     private async Task WaitForNextLoot(string message, Configuration config)

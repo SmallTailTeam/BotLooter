@@ -1,4 +1,7 @@
-﻿namespace BotLooter;
+﻿using Serilog;
+using Serilog.Core;
+
+namespace BotLooter;
 
 public static class FlowUtils
 {
@@ -6,25 +9,26 @@ public static class FlowUtils
     
     public static void AbortWithError(string error)
     {
-        Console.WriteLine(error);
-        Console.WriteLine("Нажмите любую клавишу для выхода.");
+        Log.Logger.Error(error);
+        Log.Logger.Information("Нажмите любую клавишу для выхода.");
         Console.ReadKey();
         Environment.Exit(0);
     }
 
-    public static void WaitForApproval(string message)
+    [MessageTemplateFormatMethod("messageTemplate")]
+    public static void WaitForApproval(string messageTemplate, params object[] args)
     {
-        Console.WriteLine(message);
+        Log.Logger.Information(messageTemplate, args);
 
         if (AskForApproval)
         {
-            Console.WriteLine("Нажмите любую клавишу для продолжения.");
+            Log.Logger.Information("Нажмите любую клавишу для продолжения.");
             Console.ReadKey();
             Console.CursorLeft = 0;
         }
         else
         {
-            Console.WriteLine("Ожидаю 5 секунд до продолжения.");
+            Log.Logger.Information("Ожидаю 5 секунд до продолжения.");
             Thread.Sleep(TimeSpan.FromSeconds(5));
             Console.CursorLeft = 0;
         }
@@ -34,10 +38,10 @@ public static class FlowUtils
     {
         if (!string.IsNullOrWhiteSpace(message))
         {
-            Console.WriteLine(message);
+            Log.Logger.Information(message);
         }
 
-        Console.WriteLine("Нажмите 'ctrl + c' для выхода.");
+        Log.Logger.Information("Нажмите 'ctrl + c' для выхода.");
         
         Console.TreatControlCAsInput = true;
         
