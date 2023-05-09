@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Serilog;
 using SteamAuth;
 
 namespace BotLooter.Resources;
@@ -42,7 +43,7 @@ public class SteamAccountCredentials
 
             if (split.Length != 2)
             {
-                Console.WriteLine($"Неверный формат аккаунта, номер строки: {lineNumber}, строка: '{accountLine}'");
+                Log.Logger.Warning("Неверный формат аккаунта на строке {LineNumber}", lineNumber);
                 continue;
             }
 
@@ -53,7 +54,7 @@ public class SteamAccountCredentials
 
             if (!File.Exists(secretFilePath))
             {
-                Console.WriteLine($"{login}: Не найден секретный файл для аккаунта");
+                Log.Logger.Warning("{Login} - Не найден секретный файл для аккаунта", login);
                 continue;
             }
 
@@ -67,13 +68,13 @@ public class SteamAccountCredentials
             }
             catch
             {
-                Console.WriteLine($"{login}: Не удалось десериализовать секретный файл");
+                Log.Logger.Warning("{Login} - Не удалось десериализовать секретный файл", login);
                 continue;
             }
 
             if (steamGuardAccount is not { SharedSecret: not null, IdentitySecret: not null})
             {
-                Console.WriteLine($"{login}: В секретном файле отсутствует SharedSecret или IdentitySecret");
+                Log.Logger.Warning("{Login} - В секретном файле отсутствует SharedSecret или IdentitySecret", login);
                 continue;
             }
             
