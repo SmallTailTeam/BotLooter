@@ -23,7 +23,7 @@ BotLooter.Config.json
 - `LootTradeOfferUrl` - ссылка на трейд оффер, на который будет отправляться лут
 - `SecretsDirectoryPath` - путь к папке с мафайлами
 - `AccountsFilePath` - путь к файлу с аккаунтами формата username:password
-- `ProxiesFilePath` - путь к файлу с прокси формата `protocol://username:password@address:port` или `protocol://address:port`
+- `ProxiesFilePath` - путь к файлу с прокси формата 'protocol://username:password@address:port' или 'protocol://address:port'
 - `DelayBetweenAccountsSeconds` - задержка между аккаунтами в секундах
 - `DelayInventoryEmptySeconds ` - задержка при пустом инвентаре в секундах
 - `AskForApproval ` - При значении true, для продолжения будет требоваться нажать любую клавишу, а при значении false, будет 5 секундное ожидание.
