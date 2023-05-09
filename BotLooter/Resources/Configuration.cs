@@ -57,7 +57,16 @@ public class Configuration
 
         if (config.Inventories?.Count == 0)
         {
-            return (null, "В параметре конфига 'Inventories' не указаны инвентари для лута. Формат appId/contextId.");
+            return (null, """
+            В параметре конфига 'Inventories' не указаны инвентари для лута.
+            Формат: appId/contextId
+            Пример указания инвентаря CS:GO
+            ...
+            "Inventories": [
+                "730/2"
+            ],
+            ...
+            """);
         }
             
         return (config, "");
