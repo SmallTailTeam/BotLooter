@@ -8,10 +8,6 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(outputTemplate: "{Timestamp:HH:mm:ss} {Level:w3} : {Message:lj}{NewLine}{Exception}")
     .CreateLogger();
 
-var version = new Version(0, 0, 4);
-
-Log.Logger.Information("BotLooter {Version} https://github.com/SmallTailTeam/BotLooter", version);
-
 Console.OutputEncoding = Encoding.UTF8;
 
 AppDomain.CurrentDomain.UnhandledException += (_, eventArgs) =>
@@ -20,6 +16,9 @@ AppDomain.CurrentDomain.UnhandledException += (_, eventArgs) =>
     
     Console.ReadKey();
 };
+
+var versionChecker = new VersionChecker(Log.Logger);
+await versionChecker.Check();
 
 var configLoadResult = await Configuration.TryLoadFromFile();
 
