@@ -5,7 +5,7 @@ namespace BotLooter;
 
 public class VersionChecker
 {
-    public static Version Version = new (0, 0, 2);
+    public static Version Version = new (0, 0, 4);
     
     private readonly ILogger _logger;
 
