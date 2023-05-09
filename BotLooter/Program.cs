@@ -17,7 +17,7 @@ AppDomain.CurrentDomain.UnhandledException += (_, eventArgs) =>
     Console.ReadKey();
 };
 
-var version = new Version(0, 0, 5);
+var version = new Version(0, 1, 0);
 
 var versionChecker = new VersionChecker(Log.Logger);
 await versionChecker.Check(version);
