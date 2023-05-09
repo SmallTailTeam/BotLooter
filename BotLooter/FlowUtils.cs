@@ -41,7 +41,7 @@ public static class FlowUtils
             Log.Logger.Information(message);
         }
 
-        Log.Logger.Information("Нажмите 'ctrl + c' для выхода.");
+        Log.Logger.Information("Нажмите '{Keys}' для выхода.", "ctrl + c");
         
         Console.TreatControlCAsInput = true;
         

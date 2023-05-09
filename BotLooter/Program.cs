@@ -17,8 +17,10 @@ AppDomain.CurrentDomain.UnhandledException += (_, eventArgs) =>
     Console.ReadKey();
 };
 
+var version = new Version(0, 0, 5);
+
 var versionChecker = new VersionChecker(Log.Logger);
-await versionChecker.Check();
+await versionChecker.Check(version);
 
 var configLoadResult = await Configuration.TryLoadFromFile();
 if (configLoadResult.Config is not {} config)
