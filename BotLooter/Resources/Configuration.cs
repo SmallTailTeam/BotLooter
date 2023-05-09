@@ -26,30 +26,38 @@ public class Configuration
 
         Configuration config;
         
+        var errors = new List<string>();
+        
         try
         {
-            var deserialized = JsonConvert.DeserializeObject<Configuration>(contents);
+            var deserialized = JsonConvert.DeserializeObject<Configuration>(contents, new JsonSerializerSettings
+            {
+                Error = (_, args) =>
+                {
+                    errors.Add(args.ErrorContext.Error.Message);
+                }
+            });
 
             if (deserialized is null)
             {
-                return (null, "Конфиг имеет неверный формат");
+                return (null, "Конфиг имеет неверный формат, подробности:" + Environment.NewLine + string.Join(Environment.NewLine, errors));
             }
 
             config = deserialized;
         }
         catch
         {
-            return (null, "Конфиг имеет неверный формат");
+            return (null, "Конфиг имеет неверный формат, подробности:" + Environment.NewLine + string.Join(Environment.NewLine, errors));
         }
         
         if (new TradeOfferUrl(config.LootTradeOfferUrl) is not { IsValid: true })
         {
-            return (null, "Параметр конфига 'LootTradeOfferUrl' не заполнен или заполнен неверно");
+            return (null, "Параметр конфига 'LootTradeOfferUrl' не заполнен или заполнен неверно.");
         }
 
         if (config.Inventories?.Count == 0)
         {
-            return (null, "В параметре конфига 'Inventories' не указаны инвентари для лута");
+            return (null, "В параметре конфига 'Inventories' не указаны инвентари для лута. Формат appId/contextId.");
         }
             
         return (config, "");

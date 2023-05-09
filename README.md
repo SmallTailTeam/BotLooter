@@ -6,17 +6,20 @@ BotLooter.Config.json
 {
   "LootTradeOfferUrl": "",
   
-  "SecretsDirectoryPath": "Secrets",
-  "AccountsFilePath": "Accounts.txt",
-  "ProxiesFilePath": "Proxies.txt",
+  "SecretsDirectoryPath": "secrets",
+  "AccountsFilePath": "accounts.txt",
+  "ProxiesFilePath": "proxies.txt",
   
   "DelayBetweenAccountsSeconds": 30,
-  
   "DelayInventoryEmptySeconds ": 10,
   
   "AskForApproval": true,
   
-  "LootThreadCount": 1
+  "LootThreadCount": 1,
+  
+  "Inventories": [
+    "730/2"
+  ]
 }
 ```
 
@@ -27,12 +30,14 @@ BotLooter.Config.json
 - `DelayBetweenAccountsSeconds` - задержка между аккаунтами в секундах
 - `DelayInventoryEmptySeconds` - задержка при пустом инвентаре в секундах
 - `AskForApproval` - При значении true, для продолжения будет требоваться нажать любую клавишу, а при значении false, будет 5 секундное ожидание.
-- `LootThreadCount` - Максимальное количество потоков для лутания.
+- `LootThreadCount` - Максимальное количество потоков для лутания, не может быть больше количества прокси.
+- `Inventories` - Инвентари для лутания в формате 'appId/contextId', для CS:GO укажите '730/2'
 
 ### Функционал
 
-- Возможность лутать инвентари CS:GO на одну трейд ссылку (ссылка указывается в конфиге)
-- Для лутания используются прокси, 1 на аккаунт, по кругу (таким образом все прокси используются равномерно)
+- Возможность лутать инвентари на одну трейд ссылку, ссылка и инвентари указывается в конфиге.
+- Многопоточное лутание, количество потоков указывается в конфиге.
+- Для лутания могут использоваться прокси, 1 на аккаунт, по кругу (таким образом все прокси используются равномерно)
 - Можно не использовать прокси, для этого установите `ProxiesFilePath` пустое значение `""`
 
 ### Примеры
