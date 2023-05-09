@@ -28,7 +28,7 @@ public class LootClient
             .WaitAndRetryAsync(3, _ => TimeSpan.FromSeconds(10));
     }
 
-    public async Task<(int? LootedItemCount, string Message)> TryLoot(TradeOfferUrl tradeOfferUrl)
+    public async Task<(int? LootedItemCount, string Message)> TryLoot(TradeOfferUrl tradeOfferUrl, List<string> inventories)
     {
         var (isSession, ensureSessionMessage) = await _steamSession.TryEnsureSession();
 
@@ -37,7 +37,7 @@ public class LootClient
             return (null, ensureSessionMessage);
         }
 
-        var (assets, getAssetsMessage) = await GetAssetsToSend(_steamWeb, Credentials.SteamGuardAccount.Session.SteamID);
+        var (assets, getAssetsMessage) = await GetAssetsToSend(_steamWeb, Credentials.SteamGuardAccount.Session.SteamID, inventories);
 
         if (assets is null)
         {
@@ -46,7 +46,7 @@ public class LootClient
 
         if (assets.Count < 1)
         {
-            return (null, "Пустой инвентарь");
+            return (null, "Пустые инвентари");
         }
 
         var tradeOffer = new JsonTradeOffer
@@ -85,21 +85,38 @@ public class LootClient
         return (tradeOffer.Me.Assets.Count, $"Залутан! Предметов: {tradeOffer.Me.Assets.Count}");
     }
 
-    private async Task<(List<Asset>? Assets, string message)> GetAssetsToSend(SteamWeb web, ulong steamId64)
+    private async Task<(List<Asset>? Assets, string message)> GetAssetsToSend(SteamWeb web, ulong steamId64, List<string> inventories)
     {
-        var inventoryResponse = await _getInventoryPolicy.ExecuteAsync(() => web.GetInventory(steamId64, 730, 2));
-
-        if (inventoryResponse.Data is not {} inventoryData)
+        var assets = new List<Asset>();
+        
+        foreach (var inventory in inventories)
         {
-            return (null, $"Не смог получить инвентарь. StatusCode: {inventoryResponse.StatusCode}");
+            var split = inventory.Split('/');
+
+            if (split.Length != 2)
+            {
+                continue;
+            }
+
+            var inventoryId = split[0];
+            var contextId = split[1];
+            
+            var inventoryResponse = await _getInventoryPolicy.ExecuteAsync(() => web.GetInventory(steamId64, inventoryId, contextId));
+            
+            if (inventoryResponse.Data is not {} inventoryData)
+            {
+                return (null, $"Не смог получить инвентарь {inventory}. StatusCode: {inventoryResponse.StatusCode}");
+            }
+            
+            if (inventoryData.Assets is not {} inventoryAssets)
+            {
+                continue;
+            }
+            
+            assets.AddRange(inventoryAssets);
         }
 
-        if (inventoryResponse.Data.Assets is null)
-        {
-            return (new List<Asset>(), "");
-        }
-
-        return (inventoryData.Assets, "");
+        return (assets, "");
     }
 
     private async Task<(ulong? TradeOfferId, string Message)> SendTradeOffer(TradeOfferUrl tradeOfferUrl, JsonTradeOffer tradeOffer)

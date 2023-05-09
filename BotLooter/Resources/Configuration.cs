@@ -13,6 +13,7 @@ public class Configuration
     public int DelayInventoryEmptySeconds { get; set; } = 10;
     public bool AskForApproval { get; set; } = true;
     public int LootThreadCount { get; set; } = 1;
+    public List<string> Inventories { get; set; } = new();
 
     public static async Task<(Configuration? Config, string Message)> TryLoadFromFile()
     {
@@ -25,25 +26,47 @@ public class Configuration
 
         Configuration config;
         
+        var errors = new List<string>();
+        
         try
         {
-            var deserialized = JsonConvert.DeserializeObject<Configuration>(contents);
+            var deserialized = JsonConvert.DeserializeObject<Configuration>(contents, new JsonSerializerSettings
+            {
+                Error = (_, args) =>
+                {
+                    errors.Add(args.ErrorContext.Error.Message);
+                }
+            });
 
             if (deserialized is null)
             {
-                return (null, "Конфиг имеет неверный формат");
+                return (null, "Конфиг имеет неверный формат, подробности:" + Environment.NewLine + string.Join(Environment.NewLine, errors));
             }
 
             config = deserialized;
         }
         catch
         {
-            return (null, "Конфиг имеет неверный формат");
+            return (null, "Конфиг имеет неверный формат, подробности:" + Environment.NewLine + string.Join(Environment.NewLine, errors));
         }
         
         if (new TradeOfferUrl(config.LootTradeOfferUrl) is not { IsValid: true })
         {
-            return (null, "Параметр конфига 'LootTradeOfferUrl' не заполнен или заполнен неверно");
+            return (null, "Параметр конфига 'LootTradeOfferUrl' не заполнен или заполнен неверно.");
+        }
+
+        if (config.Inventories?.Count == 0)
+        {
+            return (null, """
+            В параметре конфига 'Inventories' не указаны инвентари для лута.
+            Формат: appId/contextId
+            Пример указания инвентаря CS:GO
+            ...
+            "Inventories": [
+                "730/2"
+            ],
+            ...
+            """);
         }
             
         return (config, "");

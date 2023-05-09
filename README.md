@@ -1,4 +1,14 @@
-### Формат конфига
+## Описание
+
+Софт позволяет передать предметы от нескольких Steam аккаунтов на один. Кратко - Залутать ботов.
+
+## Функционал
+
+- Лутание любых инвентарей, например стим, кс, дота, тф2 и т.д.
+- Многопоточное или однопоточного лутание.
+- Использование прокси.
+
+## Конфиг
 
 BotLooter.Config.json
 
@@ -6,35 +16,110 @@ BotLooter.Config.json
 {
   "LootTradeOfferUrl": "",
   
-  "SecretsDirectoryPath": "Secrets",
-  "AccountsFilePath": "Accounts.txt",
-  "ProxiesFilePath": "Proxies.txt",
+  "SecretsDirectoryPath": "secrets",
+  "AccountsFilePath": "accounts.txt",
+  "ProxiesFilePath": "proxies.txt",
   
   "DelayBetweenAccountsSeconds": 30,
-  
   "DelayInventoryEmptySeconds ": 10,
   
   "AskForApproval": true,
   
-  "LootThreadCount": 1
+  "LootThreadCount": 1,
+  
+  "Inventories": [
+    "730/2"
+  ]
 }
 ```
 
-- `LootTradeOfferUrl` - ссылка на трейд оффер, на который будет отправляться лут
-- `SecretsDirectoryPath` - путь к папке с мафайлами
-- `AccountsFilePath` - путь к файлу с аккаунтами формата username:password
-- `ProxiesFilePath` - путь к файлу с прокси формата 'protocol://username:password@address:port' или 'protocol://address:port'
-- `DelayBetweenAccountsSeconds` - задержка между аккаунтами в секундах
-- `DelayInventoryEmptySeconds` - задержка при пустом инвентаре в секундах
-- `AskForApproval` - При значении true, для продолжения будет требоваться нажать любую клавишу, а при значении false, будет 5 секундное ожидание.
-- `LootThreadCount` - Максимальное количество потоков для лутания.
+### `"LootTradeOfferUrl"`
+Cсылка на трейд оффер, на который будут отправляться предметы.
+\
+Для работы необходимо скопировать полную актуальную ссылку. Пример.
+- `"https://steamcommunity.com/tradeoffer/new/?partner=9639579492&token=2ix22Ruv2"`
 
-### Функционал
+---
 
-- Возможность лутать инвентари CS:GO на одну трейд ссылку (ссылка указывается в конфиге)
-- Для лутания используются прокси, 1 на аккаунт, по кругу (таким образом все прокси используются равномерно)
-- Можно не использовать прокси, для этого установите `ProxiesFilePath` пустое значение `""`
+### `"SecretsDirectoryPath"`
+Путь к папке с МаФайлами.
 
-### Примеры
+---
 
+### `"AccountsFilePath"`
+Путь к файлу с аккаунтами формата login:password
+
+---
+
+### `"ProxiesFilePath"`
+Путь к файлу с прокси. Пример.
+- `"http://username:password@192.168.1.80:25565"`
+- `"http://192.168.1.80:8080"`
+
+---
+
+### `"DelayBetweenAccountsSeconds"`
+Задержка при успешном и ошибочном лутаниях.
+\
+Указывается в секундах.
+
+---
+
+### `"DelayInventoryEmptySeconds"`
+Задержка при пустом инвентаре.
+\
+Указывается в секундах.
+
+---
+
+### `"AskForApproval"`
+- `true` - Будет требоваться подтрвеждение нажатием любой клавиши.
+- `false` - 5 секундное ожидание без подтрвеждения начала работы.
+
+---
+
+### `"LootThreadCount"`
+Максимальное количество потоков для лутания.
+\
+Не может быть больше количества прокси.
+\
+Без прокси может быть только `1`
+
+---
+
+### `"Inventories"`
+Список инвентарей для лутания. Можно указывать один или несколько.
+\
+Формат `"appId/contextId"`
+
+Некоторые известные инвентари:
+- `"730/2"` - CS:GO
+- `"753/6"` - Steam Community
+- `"440/2"` - TF2
+
+Пример, который будет лутать все 3 вышеперчисленные инвентаря.
+```json
+"Inventories": [
+  "730/2",
+  "753/6",
+  "440/2"
+]
+```
+
+## Замечания
+Особенности работы, подсказки и ответы на некоторые вопросы.
+
+### Пути
+Пути в конфиге можно указать как локальные, так и полные.
+\
+В случае написания с бекслешем необходимо заменять `\` на `\\` примеры:
+- `"C:\\Users\\BestUser\\Desktop\\SSF\\secrets"`
+- `".\\secrets"`
+- `"secrets"`
+- `"accounts.txt"`
+- `"./accounts.txt"`
+
+
+
+## Примеры
 ![Скриншот работы софта](Assets/Screenshot.png)

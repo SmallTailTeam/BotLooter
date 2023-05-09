@@ -72,9 +72,9 @@ public class SteamAccountCredentials
                 continue;
             }
 
-            if (steamGuardAccount is not { SharedSecret: not null, IdentitySecret: not null})
+            if (steamGuardAccount is not { SharedSecret: not null, IdentitySecret: not null, DeviceID: not null})
             {
-                Log.Logger.Warning("{Login} - В секретном файле отсутствует SharedSecret или IdentitySecret", login);
+                Log.Logger.Warning("{Login} - В секретном файле отсутствует SharedSecret, IdentitySecret или DeviceId", login);
                 continue;
             }
             

@@ -7,7 +7,7 @@ namespace BotLooter.Resources;
 
 public class ProxyClientProvider : IClientProvider
 {
-    public int ProxyCount => _proxiedClients.Count;
+    public int ClientCount => _proxiedClients.Count;
     
     private readonly List<RestClient> _proxiedClients;
     private int _proxyIndex;

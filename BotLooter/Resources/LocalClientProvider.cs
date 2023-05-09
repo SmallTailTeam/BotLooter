@@ -5,6 +5,8 @@ namespace BotLooter.Resources;
 
 public class LocalClientProvider : IClientProvider
 {
+    public int ClientCount => 1;
+    
     private readonly RestClient _restClient;
 
     public LocalClientProvider()
