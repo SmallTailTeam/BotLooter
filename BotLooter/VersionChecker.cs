@@ -24,6 +24,7 @@ public class VersionChecker
 
         if (!Version.TryParse(latestRelease.TagName, out var releaseVersion))
         {
+            _logger.Information("BotLooter {Version} https://github.com/SmallTailTeam/BotLooter", Version);
             return;
         }
 
