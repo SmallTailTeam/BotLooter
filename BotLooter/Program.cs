@@ -29,6 +29,8 @@ if (configLoadResult.Config is not {} config)
     return;
 }
 
+Log.Logger.Information("Инвентари для лута: {Inventories}", string.Join(", ", config.Inventories));
+
 FlowUtils.AskForApproval = config.AskForApproval;
 
 var clientProvider = await GetClientProvider();

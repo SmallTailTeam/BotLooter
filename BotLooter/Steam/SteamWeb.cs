@@ -18,9 +18,9 @@ public class SteamWeb
         _htmlParser = new HtmlParser();
     }
     
-    public async Task<RestResponse<GetInventoryResponse>> GetInventory(ulong steamId64, uint appId, uint contextId, int count = 100)
+    public async Task<RestResponse<GetInventoryResponse>> GetInventory(ulong steamId64, string inventoryId, string contextId, int count = 100)
     {
-        var request = new RestRequest($"https://steamcommunity.com/inventory/{steamId64}/{appId}/{contextId}");
+        var request = new RestRequest($"https://steamcommunity.com/inventory/{steamId64}/{inventoryId}/{contextId}");
         request.AddParameter("l", "english");
         request.AddParameter("count", count);
 

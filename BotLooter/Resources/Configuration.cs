@@ -13,6 +13,7 @@ public class Configuration
     public int DelayInventoryEmptySeconds { get; set; } = 10;
     public bool AskForApproval { get; set; } = true;
     public int LootThreadCount { get; set; } = 1;
+    public List<string> Inventories { get; set; } = new();
 
     public static async Task<(Configuration? Config, string Message)> TryLoadFromFile()
     {
@@ -44,6 +45,11 @@ public class Configuration
         if (new TradeOfferUrl(config.LootTradeOfferUrl) is not { IsValid: true })
         {
             return (null, "Параметр конфига 'LootTradeOfferUrl' не заполнен или заполнен неверно");
+        }
+
+        if (config.Inventories?.Count == 0)
+        {
+            return (null, "В параметре конфига 'Inventories' не указаны инвентари для лута");
         }
             
         return (config, "");

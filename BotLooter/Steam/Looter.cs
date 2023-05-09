@@ -24,7 +24,7 @@ public class Looter
             MaxDegreeOfParallelism = config.LootThreadCount
         }, async (lootClient, _) =>
         {
-            var lootResult = await lootClient.TryLoot(tradeOfferUrl);
+            var lootResult = await lootClient.TryLoot(tradeOfferUrl, config.Inventories);
 
             Interlocked.Increment(ref counter);
             var progress = $"{counter}/{lootClients.Count}";
@@ -41,7 +41,7 @@ public class Looter
 
     private async Task WaitForNextLoot(string message, Configuration config)
     {
-        if (message == "Пустой инвентарь")
+        if (message == "Пустые инвентари")
         {
             await Task.Delay(TimeSpan.FromSeconds(config.DelayInventoryEmptySeconds));
         }
