@@ -87,6 +87,8 @@ public class LootClient
 
     private async Task<(List<Asset>? Assets, string message)> GetAssetsToSend(SteamWeb web, ulong steamId64, List<string> inventories)
     {
+        var filteredOut = new HashSet<string>();
+        
         var assets = new List<Asset>();
 
         var index = 0;
@@ -115,7 +117,14 @@ public class LootClient
                 continue;
             }
             
-            assets.AddRange(inventoryAssets);
+            foreach (var description in inventoryData.Descriptions.Where(d => d.Tradable == 0))
+            {
+                filteredOut.Add(description.Classid);
+            }
+
+            var notFilteredOutAssets = inventoryAssets.Where(a => !filteredOut.Contains(a.Classid));
+            
+            assets.AddRange(notFilteredOutAssets);
 
             var isLast = index == inventories.Count - 1;
             
