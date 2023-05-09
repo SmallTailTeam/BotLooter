@@ -37,17 +37,30 @@ if (clientProvider is null)
 
 var credentialsLoadResult = await SteamAccountCredentials.TryLoadFromFiles(config.AccountsFilePath, config.SecretsDirectoryPath);
 
-if (credentialsLoadResult.LootAccounts is not { } credentials)
+if (credentialsLoadResult.LootAccounts is not { } accountCredentials)
 {
     FlowUtils.AbortWithError(credentialsLoadResult.Message);
     return;
 }
 
-FlowUtils.WaitForApproval($"Загружено аккаунтов для лута: {credentials.Count}");
+FlowUtils.WaitForApproval($"Загружено аккаунтов для лута: {accountCredentials.Count}");
+
+var lootClients = new List<LootClient>();
+
+foreach (var credentials in accountCredentials)
+{
+    var restClient = clientProvider.Provide();
+            
+    var steamSession = new SteamSession(credentials, restClient);
+    var steamWeb = new SteamWeb(steamSession);
+    var lootClient = new LootClient(credentials, steamSession, steamWeb);
+    
+    lootClients.Add(lootClient);
+}
 
 var looter = new Looter();
 
-await looter.Loot(credentials, clientProvider, config.LootTradeOfferUrl, config);
+await looter.Loot(lootClients, config.LootTradeOfferUrl, config);
 
 FlowUtils.WaitForExit("Лутание завершено");
 

@@ -5,25 +5,19 @@ namespace BotLooter.Steam;
 
 public class Looter
 {
-    public async Task Loot(List<SteamAccountCredentials> accountCredentials, IClientProvider clientProvider, TradeOfferUrl tradeOfferUrl, Configuration config)
+    public async Task Loot(List<LootClient> lootClients, TradeOfferUrl tradeOfferUrl, Configuration config)
     {
         Console.WriteLine("Начинаю лутать...");
     
         var counter = 0;
         
-        foreach (var credentials in accountCredentials)
+        foreach (var lootClient in lootClients)
         {
             counter++;
 
-            var restClient = clientProvider.Provide();
-            
-            var steamSession = new SteamSession(credentials, restClient);
-            var steamWeb = new SteamWeb(steamSession);
-            var lootClient = new LootClient(credentials, steamSession, steamWeb);
-            
             var lootResult = await lootClient.TryLoot(tradeOfferUrl);
 
-            var prefix = $"{counter}/{accountCredentials.Count} {credentials.Login}:";
+            var prefix = $"{counter}/{lootClients.Count} {lootClient.Credentials.Login}:";
             
             Console.WriteLine($"{prefix} {lootResult.Message}");
 
