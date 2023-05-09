@@ -2,21 +2,23 @@
 using BotLooter;
 using BotLooter.Resources;
 using BotLooter.Steam;
+using Serilog;
 
-var version = new Version(0, 0, 3);
-
-Console.WriteLine($"BotLooter {version} https://github.com/SmallTailTeam/BotLooter");
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console(outputTemplate: "{Timestamp:HH:mm:ss} {Level:w3} : {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
 
 Console.OutputEncoding = Encoding.UTF8;
 
 AppDomain.CurrentDomain.UnhandledException += (_, eventArgs) =>
 {
-    Console.ForegroundColor = ConsoleColor.Red;
-    Console.WriteLine("Исключение! Для расшифровки можете обратиться к разработчику напрямую или оставить issue на GitHub.");
-    Console.WriteLine();
-    Console.WriteLine(eventArgs.ExceptionObject);
+    Log.Logger.Fatal((Exception)eventArgs.ExceptionObject, "Исключение! Для расшифровки можете обратиться к разработчику напрямую или оставить issue на GitHub.");
+    
     Console.ReadKey();
 };
+
+var versionChecker = new VersionChecker(Log.Logger);
+await versionChecker.Check();
 
 var configLoadResult = await Configuration.TryLoadFromFile();
 
@@ -37,19 +39,32 @@ if (clientProvider is null)
 
 var credentialsLoadResult = await SteamAccountCredentials.TryLoadFromFiles(config.AccountsFilePath, config.SecretsDirectoryPath);
 
-if (credentialsLoadResult.LootAccounts is not { } credentials)
+if (credentialsLoadResult.LootAccounts is not { } accountCredentials)
 {
     FlowUtils.AbortWithError(credentialsLoadResult.Message);
     return;
 }
 
-FlowUtils.WaitForApproval($"Загружено аккаунтов для лута: {credentials.Count}");
+FlowUtils.WaitForApproval("Загружено аккаунтов для лута: {Count}", accountCredentials.Count);
 
-var looter = new Looter();
+var lootClients = new List<LootClient>();
 
-await looter.Loot(credentials, clientProvider, config.LootTradeOfferUrl, config);
+foreach (var credentials in accountCredentials)
+{
+    var restClient = clientProvider.Provide();
+            
+    var steamSession = new SteamSession(credentials, restClient);
+    var steamWeb = new SteamWeb(steamSession);
+    var lootClient = new LootClient(credentials, steamSession, steamWeb);
+    
+    lootClients.Add(lootClient);
+}
 
-FlowUtils.WaitForExit("Лутание завершено");
+var looter = new Looter(Log.Logger);
+
+await looter.Loot(lootClients, config.LootTradeOfferUrl, config);
+
+FlowUtils.WaitForExit();
 
 async Task<IClientProvider?> GetClientProvider()
 {
@@ -77,7 +92,7 @@ async Task<IClientProvider?> GetClientProvider()
             return null;
         }
         
-        FlowUtils.WaitForApproval($"Загружено прокси: {proxyPool.ProxyCount}");
+        FlowUtils.WaitForApproval("Загружено прокси: {Count}", proxyPool.ProxyCount);
 
         return proxyPool;
     }

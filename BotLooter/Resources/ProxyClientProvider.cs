@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using RestSharp;
 using RestSharp.Serializers.NewtonsoftJson;
+using Serilog;
 
 namespace BotLooter.Resources;
 
@@ -49,7 +50,7 @@ public class ProxyClientProvider : IClientProvider
 
             if (proxy is null)
             {
-                Console.WriteLine($"Неверный формат прокси на строке {lineNumber}: {line}");
+                Log.Logger.Warning("Неверный формат прокси на строке {LineNumber}", lineNumber);
                 continue;
             }
 

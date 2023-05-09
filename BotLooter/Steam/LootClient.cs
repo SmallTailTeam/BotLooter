@@ -10,7 +10,8 @@ namespace BotLooter.Steam;
 
 public class LootClient
 {
-    private readonly SteamAccountCredentials _credentials;
+    public SteamAccountCredentials Credentials { get; }
+    
     private readonly SteamSession _steamSession;
     private readonly SteamWeb _steamWeb;
     
@@ -18,7 +19,7 @@ public class LootClient
 
     public LootClient(SteamAccountCredentials credentials, SteamSession steamSession, SteamWeb steamWeb)
     {
-        _credentials = credentials;
+        Credentials = credentials;
         _steamSession = steamSession;
         _steamWeb = steamWeb;
         
@@ -36,7 +37,7 @@ public class LootClient
             return (null, ensureSessionMessage);
         }
 
-        var (assets, getAssetsMessage) = await GetAssetsToSend(_steamWeb, _credentials.SteamGuardAccount.Session.SteamID);
+        var (assets, getAssetsMessage) = await GetAssetsToSend(_steamWeb, Credentials.SteamGuardAccount.Session.SteamID);
 
         if (assets is null)
         {
