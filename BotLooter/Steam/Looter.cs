@@ -7,22 +7,28 @@ public class Looter
 {
     public async Task Loot(List<LootClient> lootClients, TradeOfferUrl tradeOfferUrl, Configuration config)
     {
-        Console.WriteLine("Начинаю лутать...");
+        Console.WriteLine($"Начинаю лутать. Потоков: {config.LootThreadCount}");
     
         var counter = 0;
-        
-        foreach (var lootClient in lootClients)
-        {
-            counter++;
 
+        await Parallel.ForEachAsync(lootClients, new ParallelOptions
+        {
+            MaxDegreeOfParallelism = config.LootThreadCount
+        }, async (lootClient, _) =>
+        {
             var lootResult = await lootClient.TryLoot(tradeOfferUrl);
 
-            var prefix = $"{counter}/{lootClients.Count} {lootClient.Credentials.Login}:";
+            Interlocked.Increment(ref counter);
+            var progress = $"{counter}/{lootClients.Count}";
             
-            Console.WriteLine($"{prefix} {lootResult.Message}");
+            var identifier = $"{lootClient.Credentials.Login}";
+            
+            Console.WriteLine($" {progress} | {identifier} | {lootResult.Message}");
 
             await WaitForNextLoot(lootResult.Message, config);
-        }
+        });
+        
+        Console.WriteLine("Лутание завершено");
     }
 
     private async Task WaitForNextLoot(string message, Configuration config)

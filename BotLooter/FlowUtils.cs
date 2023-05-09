@@ -30,9 +30,13 @@ public static class FlowUtils
         }
     }
 
-    public static void WaitForExit(string message)
+    public static void WaitForExit(string? message = null)
     {
-        Console.WriteLine(message);
+        if (!string.IsNullOrWhiteSpace(message))
+        {
+            Console.WriteLine(message);
+        }
+
         Console.WriteLine("Нажмите 'ctrl + c' для выхода.");
         
         Console.TreatControlCAsInput = true;
