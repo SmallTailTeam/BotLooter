@@ -60,12 +60,6 @@ public class SteamAccountCredentials
                 continue;
             }
 
-            if (secret is not { SharedSecret: not null, IdentitySecret: not null, DeviceID: not null})
-            {
-                Log.Logger.Warning("{Login} - В секретном файле отсутствует shared_secret, identity_secret или device_id", login);
-                continue;
-            }
-            
             accounts.Add(new SteamAccountCredentials(login, password, secret));
         }
         
@@ -74,25 +68,36 @@ public class SteamAccountCredentials
 
     private static async Task<List<SteamGuardAccount>> GetSecretFiles(string directoryPath)
     {
-        var steamGuardAccounts = new List<SteamGuardAccount>();
+        var secrets = new List<SteamGuardAccount>();
             
         var files = Directory.GetFiles(directoryPath);
         
         foreach (var filePath in files)
         {
+            var contents = await File.ReadAllTextAsync(filePath);
+            
             try
             {
-                var contents = await File.ReadAllTextAsync(filePath);
-                    
-                var json = JsonConvert.DeserializeObject<SteamGuardAccount>(contents);
+                var secret = JsonConvert.DeserializeObject<SteamGuardAccount>(contents);
 
-                if (json is null)
+                if (secret is null)
                 {
                     Log.Logger.Warning("Невалидный секретный файл: {FilePath}", filePath);
                     continue;
                 }
                 
-                steamGuardAccounts.Add(json);
+                if (secret is not { SharedSecret: not null, IdentitySecret: not null, DeviceID: not null })
+                {
+                    Log.Logger.Warning("В секретном файле отсутствует shared_secret, identity_secret или device_id: {Path}", filePath);
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(secret.AccountName))
+                {
+                    secret.AccountName = Path.GetFileNameWithoutExtension(filePath);
+                }
+                
+                secrets.Add(secret);
             }
             catch
             {
@@ -100,7 +105,7 @@ public class SteamAccountCredentials
             }
         }
 
-        return steamGuardAccounts;
+        return secrets;
     }
 
     private static SteamGuardAccount? FindSecretFile(List<SteamGuardAccount> steamGuardAccounts, string login)
