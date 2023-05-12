@@ -57,11 +57,16 @@ public class LootClient
 
         foreach (var inventoryAsset in assets)
         {
+            if (!int.TryParse(inventoryAsset.Amount, out var amount))
+            {
+                amount = 1;
+            }
+            
             var asset = new TradeOfferAsset
             {
                 AppId = $"{inventoryAsset.Appid}",
                 ContextId = $"{inventoryAsset.Contextid}",
-                Amount = 1,
+                Amount = amount,
                 AssetId = inventoryAsset.Assetid
             };
 

@@ -100,11 +100,18 @@ public class SteamSession
     {
         var loginResult = _loginPolicy.Execute(() =>
         {
-            _userLogin.TwoFactorCode = _credentials.SteamGuardAccount.GenerateSteamGuardCode();
-        
-            var result = _userLogin.DoLogin();
+            try
+            {
+                _userLogin.TwoFactorCode = _credentials.SteamGuardAccount.GenerateSteamGuardCode();
 
-            return result;
+                var result = _userLogin.DoLogin();
+
+                return result;
+            }
+            catch
+            {
+                return LoginResult.GeneralFailure;
+            }
         });
        
         var isLoginOkay = loginResult == LoginResult.LoginOkay;
