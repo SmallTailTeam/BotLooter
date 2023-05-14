@@ -18,7 +18,23 @@ public class VersionChecker
 
     public async Task Check(Version currentVersion)
     {
-        var latestRelease = await _gitHubClient.Repository.Release.GetLatest(635245709);
+        Release? latestRelease = null;
+
+        try
+        {
+            latestRelease = await _gitHubClient.Repository.Release.GetLatest(635245709);
+        }
+        catch
+        {
+            // ignored
+        }
+
+        if (latestRelease is null)
+        {
+            _logger.Warning("Не удалось получить последнюю версию BotLooter.");
+            _logger.Information("Ваша версия {Version} Проверить последнюю версию можно здесь https://github.com/SmallTailTeam/BotLooter", currentVersion);
+            return;
+        }
 
         if (!Version.TryParse(latestRelease.TagName, out var releaseVersion))
         {
