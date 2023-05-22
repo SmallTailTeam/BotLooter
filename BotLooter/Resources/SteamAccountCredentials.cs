@@ -85,7 +85,7 @@ public class SteamAccountCredentials
                     Log.Logger.Warning("Невалидный секретный файл: {FilePath}", filePath);
                     continue;
                 }
-                
+
                 if (secret is not { SharedSecret: not null, IdentitySecret: not null, DeviceID: not null })
                 {
                     Log.Logger.Warning("В секретном файле отсутствует shared_secret, identity_secret или device_id: {Path}", filePath);

@@ -12,6 +12,7 @@ public class Configuration
     public int DelayBetweenAccountsSeconds { get; set; } = 30;
     public int DelayInventoryEmptySeconds { get; set; } = 10;
     public bool AskForApproval { get; set; } = true;
+    public bool ExitOnFinish { get; set; } = false;
     public int LootThreadCount { get; set; } = 1;
     public List<string> Inventories { get; set; } = new();
 

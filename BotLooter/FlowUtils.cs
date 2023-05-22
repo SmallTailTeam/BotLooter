@@ -6,6 +6,7 @@ namespace BotLooter;
 public static class FlowUtils
 {
     public static bool AskForApproval { get; set; }
+    public static bool ExitOnFinish { get; set; }
     
     public static void AbortWithError(string error)
     {
@@ -41,20 +42,29 @@ public static class FlowUtils
             Log.Logger.Information(message);
         }
 
-        Log.Logger.Information("Нажмите '{Keys}' для выхода.", "ctrl + c");
-        
-        Console.TreatControlCAsInput = true;
-        
-        while (true)
+        if (!ExitOnFinish)
         {
-            var key = Console.ReadKey(true);
-            
-            if (key is { Key: ConsoleKey.C, Modifiers: ConsoleModifiers.Control })
+            Log.Logger.Information("Нажмите '{Keys}' для выхода.", "ctrl + c");
+
+            Console.TreatControlCAsInput = true;
+
+            while (true)
             {
-                break;
+                var key = Console.ReadKey(true);
+
+                if (key is { Key: ConsoleKey.C, Modifiers: ConsoleModifiers.Control })
+                {
+                    break;
+                }
             }
+
+            Environment.Exit(0);
         }
-        
-        Environment.Exit(0);
+        else
+        {
+            Log.Logger.Information("Выхожу через 5 секунд.");
+            Thread.Sleep(TimeSpan.FromSeconds(5));
+            Environment.Exit(0);
+        }
     }
 } 

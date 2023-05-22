@@ -32,6 +32,7 @@ if (configLoadResult.Config is not {} config)
 Log.Logger.Information("Инвентари для лута: {Inventories}", string.Join(", ", config.Inventories));
 
 FlowUtils.AskForApproval = config.AskForApproval;
+FlowUtils.ExitOnFinish = config.ExitOnFinish;
 
 var clientProvider = await GetClientProvider();
 if (clientProvider is null)
