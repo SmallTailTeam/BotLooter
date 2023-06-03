@@ -1,6 +1,7 @@
 using BotLooter.Integrations.Yar.Data;
 using BotLooter.Integrations.Yar.Database;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace BotLooter.Integrations.Yar;
 
@@ -32,6 +33,10 @@ public class RewardWatcher
         {
             await using var db = CreateDbContext();
 
+            var total = await db.Rewards.CountAsync();
+            
+            Log.Logger.Information("Дропов всего: {Count}", total);
+            
             var newRewards = await db.Rewards
                 .Where(r => r.CreatedAt > _lastCheckTimeUtc)
                 .ToListAsync();

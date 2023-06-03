@@ -57,7 +57,7 @@ var lootClients = CreateLootClients();
 
 if (config.Yar is not null)
 {
-    var yarIntegration = new YarIntegration(config, config.Yar);
+    var yarIntegration = new YarIntegration(Log.Logger, config, config.Yar, lootClients);
     await yarIntegration.Integrate();
 }
 
