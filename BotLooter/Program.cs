@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using BotLooter;
+using BotLooter.Looting;
 using BotLooter.Resources;
 using BotLooter.Steam;
 using Serilog;
@@ -32,7 +33,7 @@ if (configLoadResult.Config is not {} config)
 Log.Logger.Information("Инвентари для лута: {Inventories}", string.Join(", ", config.Inventories));
 
 FlowUtils.AskForApproval = config.AskForApproval;
-FlowUtils.ExitOnFinish = config.ExitOnFinish;
+FlowUtils.AskForExit = !config.ExitOnFinish;
 
 var clientProvider = await GetClientProvider();
 if (clientProvider is null)
@@ -59,11 +60,11 @@ await looter.Loot(lootClients, config.LootTradeOfferUrl, config);
 
 FlowUtils.WaitForExit();
 
-async Task<IClientProvider?> GetClientProvider()
+async Task<IRestClientProvider?> GetClientProvider()
 {
     if (string.IsNullOrWhiteSpace(config.ProxiesFilePath))
     {
-        var provider = new LocalClientProvider();
+        var provider = new LocalRestClientProvider();
 
         FlowUtils.WaitForApproval("Прокси не указаны, используется локальный клиент.");
         
@@ -71,7 +72,7 @@ async Task<IClientProvider?> GetClientProvider()
     }
     else
     {
-        var proxyPoolLoadResult = await ProxyClientProvider.TryLoadFromFile(config.ProxiesFilePath);
+        var proxyPoolLoadResult = await ProxyRestClientProvider.TryLoadFromFile(config.ProxiesFilePath);
 
         if (proxyPoolLoadResult.ProxyPool is not { } proxyPool)
         {
@@ -79,13 +80,13 @@ async Task<IClientProvider?> GetClientProvider()
             return null;
         }
 
-        if (proxyPool.ClientCount == 0)
+        if (proxyPool.AvailableClientsCount == 0)
         {
             FlowUtils.AbortWithError($"В файле '{config.ProxiesFilePath}' отсутствуют прокси");
             return null;
         }
         
-        FlowUtils.WaitForApproval("Загружено прокси: {Count}", proxyPool.ClientCount);
+        FlowUtils.WaitForApproval("Загружено прокси: {Count}", proxyPool.AvailableClientsCount);
 
         return proxyPool;
     }
@@ -93,19 +94,19 @@ async Task<IClientProvider?> GetClientProvider()
 
 void CheckThreadCount()
 {
-    if (config.LootThreadCount > clientProvider.ClientCount)
+    if (config.LootThreadCount > clientProvider.AvailableClientsCount)
     {
         switch (clientProvider)
         {
-            case ProxyClientProvider:
-                Log.Logger.Warning("Потоков {ThreadCount} > Прокси {ClientCount}. Количество потоков будет уменьшено до количества прокси.", config.LootThreadCount, clientProvider.ClientCount);
+            case ProxyRestClientProvider:
+                Log.Logger.Warning("Потоков ({ThreadCount}) больше чем прокси ({ClientCount}). Количество потоков будет уменьшено до количества прокси.", config.LootThreadCount, clientProvider.AvailableClientsCount);
                 break;
-            case LocalClientProvider:
+            case LocalRestClientProvider:
                 Log.Logger.Warning("Используется локальный клиент, количество потоков будет уменьшено с {ThreadCount} до {ReducedCount}.", config.LootThreadCount, 1);
                 break;
         }
 
-        config.LootThreadCount = clientProvider.ClientCount;
+        config.LootThreadCount = clientProvider.AvailableClientsCount;
     }
 }
 

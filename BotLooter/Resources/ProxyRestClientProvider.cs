@@ -5,14 +5,14 @@ using Serilog;
 
 namespace BotLooter.Resources;
 
-public class ProxyClientProvider : IClientProvider
+public class ProxyRestClientProvider : IRestClientProvider
 {
-    public int ClientCount => _proxiedClients.Count;
+    public int AvailableClientsCount => _proxiedClients.Count;
     
     private readonly List<RestClient> _proxiedClients;
     private int _proxyIndex;
 
-    public ProxyClientProvider(List<RestClient> proxiedClients)
+    public ProxyRestClientProvider(List<RestClient> proxiedClients)
     {
         _proxiedClients = proxiedClients;
     }
@@ -29,7 +29,7 @@ public class ProxyClientProvider : IClientProvider
         return proxiedClient;
     }
     
-    public static async Task<(ProxyClientProvider? ProxyPool, string Message)> TryLoadFromFile(string filePath)
+    public static async Task<(ProxyRestClientProvider? ProxyPool, string Message)> TryLoadFromFile(string filePath)
     {
         if (!File.Exists(filePath))
         {
@@ -64,7 +64,7 @@ public class ProxyClientProvider : IClientProvider
             proxiedClients.Add(restClient);
         }
 
-        return (new ProxyClientProvider(proxiedClients), "");
+        return (new ProxyRestClientProvider(proxiedClients), "");
     }
 
     private static WebProxy? TryParseProxy(string line)

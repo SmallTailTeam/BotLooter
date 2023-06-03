@@ -5,7 +5,7 @@ namespace BotLooter.Resources;
 
 public class Configuration
 {
-    public string LootTradeOfferUrl { get; set; }
+    public string LootTradeOfferUrl { get; set; } = "";
     public string SecretsDirectoryPath { get; set; } = "secrets";
     public string AccountsFilePath { get; set; } = "accounts.txt";
     public string ProxiesFilePath { get; set; } = "proxies.txt";
@@ -61,7 +61,7 @@ public class Configuration
             return (null, """
             В параметре конфига 'Inventories' не указаны инвентари для лута.
             Формат: appId/contextId
-            Пример указания инвентаря CS:GO
+            Пример заполнения с инвентарем CS:GO
             ...
             "Inventories": [
                 "730/2"

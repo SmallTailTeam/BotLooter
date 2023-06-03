@@ -1,12 +1,12 @@
-﻿using System.Net;
-using BotLooter.Resources;
+﻿using BotLooter.Resources;
+using BotLooter.Steam;
 using BotLooter.Steam.Contracts;
 using BotLooter.Steam.Contracts.Responses;
 using Polly;
 using Polly.Retry;
 using RestSharp;
 
-namespace BotLooter.Steam;
+namespace BotLooter.Looting;
 
 public class LootClient
 {

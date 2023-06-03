@@ -3,13 +3,13 @@ using RestSharp.Serializers.NewtonsoftJson;
 
 namespace BotLooter.Resources;
 
-public class LocalClientProvider : IClientProvider
+public class LocalRestClientProvider : IRestClientProvider
 {
-    public int ClientCount => 1;
+    public int AvailableClientsCount => 1;
     
     private readonly RestClient _restClient;
 
-    public LocalClientProvider()
+    public LocalRestClientProvider()
     {
         _restClient = new RestClient(new RestClientOptions
         {

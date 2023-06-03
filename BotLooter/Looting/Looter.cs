@@ -2,7 +2,7 @@
 using BotLooter.Steam.Contracts;
 using Serilog;
 
-namespace BotLooter.Steam;
+namespace BotLooter.Looting;
 
 public class Looter
 {
