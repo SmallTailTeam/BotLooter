@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using BotLooter;
+using BotLooter.Integrations.Yar;
 using BotLooter.Looting;
 using BotLooter.Resources;
 using BotLooter.Steam;
@@ -54,9 +55,17 @@ FlowUtils.WaitForApproval("Аккаунтов для лута: {Count}", account
 
 var lootClients = CreateLootClients();
 
-var looter = new Looter(Log.Logger);
+if (config.Yar is not null)
+{
+    var yarIntegration = new YarIntegration(config, config.Yar);
+    await yarIntegration.Integrate();
+}
 
-await looter.Loot(lootClients, config.LootTradeOfferUrl, config);
+if (config.Mode == "LootAll")
+{
+    var looter = new Looter(Log.Logger);
+    await looter.Loot(lootClients, config.LootTradeOfferUrl, config);
+}
 
 FlowUtils.WaitForExit();
 

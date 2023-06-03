@@ -1,10 +1,12 @@
-﻿using BotLooter.Steam.Contracts;
+﻿using BotLooter.Integrations.Yar.Data;
+using BotLooter.Steam.Contracts;
 using Newtonsoft.Json;
 
 namespace BotLooter.Resources;
 
 public class Configuration
 {
+    public string Mode { get; set; } = "LootAll";
     public string LootTradeOfferUrl { get; set; } = "";
     public string SecretsDirectoryPath { get; set; } = "secrets";
     public string AccountsFilePath { get; set; } = "accounts.txt";
@@ -15,6 +17,8 @@ public class Configuration
     public bool ExitOnFinish { get; set; } = false;
     public int LootThreadCount { get; set; } = 1;
     public List<string> Inventories { get; set; } = new();
+    
+    public YarIntegrationConfiguration? Yar { get; set; }
 
     public static async Task<(Configuration? Config, string Message)> TryLoadFromFile()
     {
