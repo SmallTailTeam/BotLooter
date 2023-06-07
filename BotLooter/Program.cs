@@ -44,7 +44,7 @@ if (clientProvider is null)
 
 CheckThreadCount();
 
-var credentialsLoadResult = await SteamAccountCredentials.TryLoadFromFiles(config.AccountsFilePath, config.SecretsDirectoryPath);
+var credentialsLoadResult = await SteamAccountCredentials.TryLoadFromFiles(config);
 if (credentialsLoadResult.LootAccounts is not { } accountCredentials)
 {
     FlowUtils.AbortWithError(credentialsLoadResult.Message);
@@ -65,9 +65,9 @@ if (config.Mode == "LootAll")
 {
     var looter = new Looter(Log.Logger);
     await looter.Loot(lootClients, config.LootTradeOfferUrl, config);
+    
+    FlowUtils.WaitForExit();
 }
-
-FlowUtils.WaitForExit();
 
 async Task<IRestClientProvider?> GetClientProvider()
 {
@@ -108,7 +108,7 @@ void CheckThreadCount()
         switch (clientProvider)
         {
             case ProxyRestClientProvider:
-                Log.Logger.Warning("Потоков ({ThreadCount}) больше чем прокси ({ClientCount}). Количество потоков будет уменьшено до количества прокси.", config.LootThreadCount, clientProvider.AvailableClientsCount);
+                Log.Logger.Warning("Потоков {ThreadCount} больше чем прокси {ClientCount}. Количество потоков будет уменьшено до количества прокси.", config.LootThreadCount, clientProvider.AvailableClientsCount);
                 break;
             case LocalRestClientProvider:
                 Log.Logger.Warning("Используется локальный клиент, количество потоков будет уменьшено с {ThreadCount} до {ReducedCount}.", config.LootThreadCount, 1);

@@ -10,6 +10,7 @@ public class Configuration
     public string LootTradeOfferUrl { get; set; } = "";
     public string SecretsDirectoryPath { get; set; } = "secrets";
     public string AccountsFilePath { get; set; } = "accounts.txt";
+    public string SteamSessionsDirectoryPath { get; set; } = "steamsessions";
     public string ProxiesFilePath { get; set; } = "proxies.txt";
     public int DelayBetweenAccountsSeconds { get; set; } = 30;
     public int DelayInventoryEmptySeconds { get; set; } = 10;

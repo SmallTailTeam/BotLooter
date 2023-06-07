@@ -17,22 +17,79 @@ public class SteamAccountCredentials
         SteamGuardAccount = steamGuardAccount;
     }
 
-    public static async Task<(List<SteamAccountCredentials>? LootAccounts, string Message)> TryLoadFromFiles(string accountsFile, string secretsDirectory)
+    public static async Task<(List<SteamAccountCredentials>? LootAccounts, string Message)> TryLoadFromFiles(Configuration config)
     {
+        var loadedAccounts = new List<SteamAccountCredentials>();
+
+        await LoadFromSteamSessions(loadedAccounts, config.SteamSessionsDirectoryPath);
+        await LoadFromSecrets(loadedAccounts, config.AccountsFilePath, config.SecretsDirectoryPath);
+
+        return (loadedAccounts, "");
+    }
+
+    private static async Task LoadFromSteamSessions(List<SteamAccountCredentials> loadedAccounts, string steamSessionsDirectoryPath)
+    {
+        if (!Directory.Exists(steamSessionsDirectoryPath))
+        {
+            Log.Logger.Warning($"Папки с стим-сессиями '{steamSessionsDirectoryPath}' не существует");
+            return;
+        }
+
+        foreach (var filePath in Directory.GetFiles(steamSessionsDirectoryPath, "*.steamsession"))
+        {
+            var fileContents = await File.ReadAllTextAsync(filePath);
+
+            SteamSessionFile? steamSessionFile = null;
+            
+            try
+            {
+                steamSessionFile = JsonConvert.DeserializeObject<SteamSessionFile>(fileContents);
+            }
+            catch
+            {
+                // ignore
+            }
+
+            if (steamSessionFile is null)
+            {
+                Log.Logger.Warning("Невалидный стим-сессия файл: {FilePath}", filePath);
+                continue;
+            }
+
+            var accountCredentials = new SteamAccountCredentials(steamSessionFile.Username, steamSessionFile.Password, new SteamGuardAccount
+            {
+                AccountName = steamSessionFile.Username,
+                SharedSecret = steamSessionFile.SharedSecret,
+                IdentitySecret = steamSessionFile.IdentitySecret
+            });
+            
+            // TODO: Use the refresh token to obtain web session, somehow
+            
+            loadedAccounts.Add(accountCredentials);
+        }
+    }
+
+    private static async Task LoadFromSecrets(List<SteamAccountCredentials> loadedAccounts, string accountsFile, string secretsDirectory)
+    {
+        if (string.IsNullOrWhiteSpace(accountsFile) || string.IsNullOrWhiteSpace(secretsDirectory))
+        {
+            return;
+        }
+        
         if (!File.Exists(accountsFile))
         {
-            return (null, $"Файла с аккаунтами '{accountsFile}' не существует");
+            Log.Logger.Warning($"Файла с аккаунтами '{accountsFile}' не существует");
+            return;
         }
 
         if (!Directory.Exists(secretsDirectory))
         {
-            return (null, $"Папки с секретами '{secretsDirectory}' не существует");
+            Log.Logger.Warning($"Папки с секретами '{secretsDirectory}' не существует");
+            return;
         }
         
         var secrets = await GetSecretFiles(secretsDirectory);
-        
-        var accounts = new List<SteamAccountCredentials>();
-        
+
         var accountsFileLines = await File.ReadAllLinesAsync(accountsFile);
 
         var lineNumber = 0;
@@ -60,10 +117,8 @@ public class SteamAccountCredentials
                 continue;
             }
 
-            accounts.Add(new SteamAccountCredentials(login, password, secret));
+            loadedAccounts.Add(new SteamAccountCredentials(login, password, secret));
         }
-        
-        return (accounts, "");
     }
 
     private static async Task<List<SteamGuardAccount>> GetSecretFiles(string directoryPath)
