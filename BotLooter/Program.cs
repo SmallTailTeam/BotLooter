@@ -1,9 +1,11 @@
-﻿using System.Text;
+﻿using System.Net;
+using System.Text;
 using BotLooter;
 using BotLooter.Integrations.Yar;
 using BotLooter.Looting;
 using BotLooter.Resources;
 using BotLooter.Steam;
+using RestSharp;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -68,6 +70,13 @@ if (config.Mode == "LootAll")
     
     FlowUtils.WaitForExit();
 }
+
+FlowUtils.AbortWithError($"""
+
+Введён неизвестный режим работы '{config.Mode}', поддерживаемые режимы:
+LootAll
+Yar/WatchRewards
+""");
 
 async Task<IRestClientProvider?> GetClientProvider()
 {

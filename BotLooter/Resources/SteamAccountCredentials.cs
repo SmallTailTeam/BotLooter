@@ -8,6 +8,8 @@ public class SteamAccountCredentials
 {
     public string Login { get; set; }
     public string Password { get; set; }
+    public string? SteamId { get; set; }
+    public string? RefreshToken { get; set; }
     public SteamGuardAccount SteamGuardAccount { get; set; }
 
     public SteamAccountCredentials(string login, string password, SteamGuardAccount steamGuardAccount)
@@ -62,9 +64,10 @@ public class SteamAccountCredentials
                 SharedSecret = steamSessionFile.SharedSecret,
                 IdentitySecret = steamSessionFile.IdentitySecret
             });
-            
-            // TODO: Use the refresh token to obtain web session, somehow
-            
+
+            accountCredentials.RefreshToken = steamSessionFile.RefreshToken;
+            accountCredentials.SteamId = steamSessionFile.SteamId;
+
             loadedAccounts.Add(accountCredentials);
         }
     }

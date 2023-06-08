@@ -53,6 +53,13 @@ public class SteamSession
             return (true, "Обновил сессию");
         }
 
+        var refreshSessionResult = await TryRefreshSteamSession();
+        
+        if (refreshSessionResult.Success)
+        {
+            return (true, "Обновил стим-сессию");
+        }
+
         var loginResult = TryLogin();
         
         return (loginResult.Success, loginResult.Message);
@@ -94,6 +101,52 @@ public class SteamSession
         }
 
         return false;
+    }
+
+    private async ValueTask<(bool Success, string Message)> TryRefreshSteamSession()
+    {
+        if (_credentials.RefreshToken is null || _credentials.SteamId is null)
+        {
+            return (false, "RefreshToken или SteamId не установлены");
+        }
+
+        _cookieContainer = new CookieContainer();
+        _cookieContainer.Add(new Cookie("steamRefresh_steam", $"{_credentials.SteamId}||{_credentials.RefreshToken}", "/", "login.steampowered.com"));
+
+        var request = new RestRequest("https://login.steampowered.com/jwt/refresh?redir=https://steamcommunity.com/");
+
+        var response = await WebRequest(request);
+
+        // Following redirects manually here due to cookies not being saved otherwise
+        for (var i = 0; i < 2; i++)
+        {
+            if (response.Headers?.FirstOrDefault(h => h.Name == "Location") is not { Value: not null } location)
+            {
+                return (false, "Не смог сделать редирект, возможно что-то не так с RefreshToken");
+            }
+        
+            request = new RestRequest(location.Value.ToString());
+            
+            response = await WebRequest(request);
+        }
+
+        var sessionIdCookie = _cookieContainer.GetAllCookies().FirstOrDefault(c => c.Name == "sessionid");
+        var steamLoginSecureCookie = _cookieContainer.GetAllCookies().FirstOrDefault(c => c.Name == "steamLoginSecure");
+
+        if (sessionIdCookie is null || steamLoginSecureCookie is null || !ulong.TryParse(_credentials.SteamId, out var steamId))
+        {
+            return (false, "Обновление сессии не удолось");
+        }
+
+        _credentials.SteamGuardAccount.Session = new SessionData
+        {
+            SessionID = sessionIdCookie.Value,
+            SteamLoginSecure = steamLoginSecureCookie.Value,
+            SteamLogin = _credentials.Login,
+            SteamID = steamId
+        };
+        
+        return (true, "");
     }
 
     private (bool Success, string Message) TryLogin()
