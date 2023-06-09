@@ -1,15 +1,11 @@
 ﻿using System.Net;
-using BotLooter.Helpers;
 using BotLooter.Resources;
-using BotLooter.Steam.Contracts.Responses;
 using Newtonsoft.Json;
 using Polly;
 using Polly.Retry;
 using RestSharp;
-using Serilog;
 using SteamAuth;
 using SteamSession;
-using LoginResult = SteamAuth.LoginResult;
 
 namespace BotLooter.Steam;
 
@@ -67,7 +63,7 @@ public class SteamUserSession
             return;
         }
 
-        var sessionFilePath = Path.Combine(_savedSessionsDirectroyPath, $"{_credentials.Login}.savedsession");
+        var sessionFilePath = Path.Combine(_savedSessionsDirectroyPath, $"{_credentials.Login}.steamweb");
 
         if (!File.Exists(sessionFilePath))
         {
@@ -78,14 +74,20 @@ public class SteamUserSession
 
         try
         {
-            var sessionData = JsonConvert.DeserializeObject<SessionData>(sessionFileContents);
+            var webCookies = JsonConvert.DeserializeObject<SteamWebCookies>(sessionFileContents);
 
-            if (sessionData is null)
+            if (webCookies is null)
             {
                 return;
             }
 
-            _credentials.SteamGuardAccount.Session = sessionData;
+            _credentials.SteamGuardAccount.Session = new SessionData
+            {
+                SessionID = webCookies.SessionId,
+                SteamLoginSecure = webCookies.SteamLoginSecure,
+                SteamID = ulong.Parse(webCookies.SteamId),
+                SteamLogin = _credentials.Login
+            };
         }
         catch
         {
@@ -93,7 +95,7 @@ public class SteamUserSession
         }
     }
 
-    private async Task TrySaveSession()
+    private async Task TrySaveSession(SteamWebCookies webCookies)
     {
         if (string.IsNullOrWhiteSpace(_savedSessionsDirectroyPath))
         {
@@ -107,9 +109,9 @@ public class SteamUserSession
 
         Directory.CreateDirectory(_savedSessionsDirectroyPath);
 
-        var savedSession = JsonConvert.SerializeObject(_credentials.SteamGuardAccount.Session, Formatting.Indented);
+        var savedSession = JsonConvert.SerializeObject(webCookies, Formatting.Indented);
         
-        var sessionFilePath = Path.Combine(_savedSessionsDirectroyPath, $"{_credentials.Login}.savedsession");
+        var sessionFilePath = Path.Combine(_savedSessionsDirectroyPath, $"{_credentials.Login}.steamweb");
 
         await File.WriteAllTextAsync(sessionFilePath, savedSession);
     }
@@ -174,7 +176,7 @@ public class SteamUserSession
             SteamLogin = _credentials.Login
         };
 
-        await TrySaveSession();
+        await TrySaveSession(webCookies.Cookies);
         
         _cookieContainer = CreateCookieContainerWithSession(_credentials.SteamGuardAccount.Session);
 
