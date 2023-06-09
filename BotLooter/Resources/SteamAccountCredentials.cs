@@ -57,7 +57,7 @@ public class SteamAccountCredentials
 
             if (steamSessionFile is null)
             {
-                Log.Logger.Warning("Невалидный стим-сессия файл: {FilePath}", filePath);
+                Log.Logger.Warning("Невалидный файл стим-сессии: {FilePath}", filePath);
                 continue;
             }
 

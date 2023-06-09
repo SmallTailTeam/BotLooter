@@ -11,7 +11,7 @@ public class RewardWatcher
     private readonly RewardHandlers _rewardHandlers;
     
     private readonly PeriodicTimer _periodicTimer;
-    private DateTime _lastCheckTimeUtc;
+    private DateTime _lastCheckTime;
 
     public RewardWatcher(YarIntegrationConfiguration yarConfig, RewardHandlers rewardHandlers)
     {
@@ -23,25 +23,42 @@ public class RewardWatcher
 
     public void StartWatching()
     {
-        _lastCheckTimeUtc = DateTime.UtcNow;
-        _ = Timer();
+        _lastCheckTime = DateTime.Now;
+        _ = WatchRewards();
     }
 
-    private async Task Timer()
+    private async Task WatchRewards()
     {
         while (await _periodicTimer.WaitForNextTickAsync())
         {
-            await using var db = CreateDbContext();
-
-            var newRewards = await db.Rewards
-                .Where(r => r.CreatedAt > _lastCheckTimeUtc)
-                .ToListAsync();
-            
-            _lastCheckTimeUtc = DateTime.UtcNow;
-            
-            foreach (var reward in newRewards)
+            try
             {
-                await _rewardHandlers.Handle(reward);
+                await using var db = CreateDbContext();
+
+                var lastDrop = db.Rewards.OrderByDescending(r => r.CreatedAt).FirstOrDefault();
+
+                if (lastDrop is not null)
+                {
+                    Log.Logger.Debug("Последний дроп: {Date} ({Elapsed} назад) | Дропов всего: {Count}",
+                        lastDrop.CreatedAt,
+                        DateTime.Now - DateTimeOffset.FromUnixTimeMilliseconds(lastDrop.CreatedAt).DateTime,
+                        db.Rewards.Count());
+                }
+
+                var newRewards = await db.Rewards
+                    .Where(r => r.CreatedAt > ((DateTimeOffset)_lastCheckTime).ToUnixTimeMilliseconds())
+                    .ToListAsync();
+
+                _lastCheckTime = DateTime.Now;
+
+                foreach (var reward in newRewards)
+                {
+                    await _rewardHandlers.Handle(reward);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Logger.Error(e, "Исключение в RewardWatcher");
             }
         }
     }

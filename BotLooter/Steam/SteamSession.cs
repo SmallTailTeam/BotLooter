@@ -1,5 +1,7 @@
 ﻿using System.Net;
+using BotLooter.Helpers;
 using BotLooter.Resources;
+using BotLooter.Steam.Contracts.Responses;
 using Polly;
 using Polly.Retry;
 using RestSharp;
@@ -51,14 +53,14 @@ public class SteamSession
 
         if (await TryRefreshSession())
         {
-            return (true, "Обновил сессию");
+            return (true, "Обновил сессию через SteamAuth");
         }
 
-        var refreshSessionResult = await TryRefreshSteamSession();
-        
-        if (refreshSessionResult.Success)
+        if (CanRefreshSteamSession())
         {
-            return (true, "Обновил стим-сессию");
+            var refreshSessionResult = await TryRefreshSteamSession();
+
+            return (refreshSessionResult.Success, refreshSessionResult.Message);
         }
 
         var loginResult = TryLogin();
@@ -114,53 +116,63 @@ public class SteamSession
         return false;
     }
 
+    private bool CanRefreshSteamSession()
+        => _credentials.RefreshToken is not null;
+
     private async ValueTask<(bool Success, string Message)> TryRefreshSteamSession()
     {
-        if (_credentials.RefreshToken is null || _credentials.SteamId is null)
-        {
-            return (false, "RefreshToken или SteamId не установлены");
-        }
-
         _cookieContainer = new CookieContainer();
 
-        var request = new RestRequest("https://login.steampowered.com/jwt/refresh");
-        request.AddHeader("Cookie", $"steamRefresh_steam={_credentials.SteamId}||{_credentials.RefreshToken}");
-        request.AddQueryParameter("redir", "https://steamcommunity.com/");
+        var finalizeLoginRequest = new RestRequest("https://login.steampowered.com/jwt/finalizelogin", Method.Post);
+        finalizeLoginRequest.AlwaysMultipartFormData = true;
+        finalizeLoginRequest.AddParameter("nonce", _credentials.RefreshToken);
+        finalizeLoginRequest.AddParameter("sessionid", StringHelper.RandomString(12));
+        finalizeLoginRequest.AddParameter("redir", "https://steamcommunity.com/login/home/?goto=");
 
-        var response = await WebRequest(request);
+        var finalizeLoginResponse = await WebRequest<FinalizeLoginResponse>(finalizeLoginRequest);
 
-        // Following redirects manually here due to cookies not being saved otherwise
-        while (response.StatusCode == HttpStatusCode.Redirect)
-        {
-            if (response.Headers?.FirstOrDefault(h => h.Name == "Location") is not { Value: not null } location)
-            {
-                return (false, "Не смог сделать редирект, возможно что-то не так с RefreshToken");
-            }
+        Log.Logger.Debug("{Login} : Finalize login : {StatusCode}", _credentials.Login, finalizeLoginResponse.StatusCode);
         
-            request = new RestRequest(location.Value.ToString());
+        if (finalizeLoginResponse.Data is not { TransferInfo: not null } finalizeLoginData)
+        {
+            return (false, "Не удалось обновить стим-сессию, возможно что-то не так с RefreshToken");
+        }
+
+        foreach (var transferInfo in finalizeLoginData.TransferInfo)
+        {
+            var transferRequest = new RestRequest(transferInfo.Url, Method.Post);
+            transferRequest.AlwaysMultipartFormData = true;
+
+            transferRequest.AddParameter("steamID", finalizeLoginData.SteamID);
+            transferRequest.AddParameter("nonce", transferInfo.Params.Nonce);
+            transferRequest.AddParameter("auth", transferInfo.Params.Auth);
+
+            var transferResponse = await WebRequest(transferRequest);
+
+            Log.Logger.Debug("{Login} : Transfer {Url} : {StatusCode}", _credentials.Login, transferInfo.Url, transferResponse.StatusCode);
             
-            response = await WebRequest(request);
-        }
+            var sessionIdCookie = _cookieContainer.GetAllCookies().FirstOrDefault(c => c.Name == "sessionid");
+            var steamLoginSecureCookie = _cookieContainer.GetAllCookies().FirstOrDefault(c => c.Name == "steamLoginSecure");
 
-        var sessionIdCookie = _cookieContainer.GetAllCookies().FirstOrDefault(c => c.Name == "sessionid");
-        var steamLoginSecureCookie = _cookieContainer.GetAllCookies().FirstOrDefault(c => c.Name == "steamLoginSecure");
+            if (sessionIdCookie is null || steamLoginSecureCookie is null)
+            {
+                continue;
+            }
+            
+            _credentials.SteamGuardAccount.Session = new SessionData
+            {
+                SessionID = sessionIdCookie.Value,
+                SteamLoginSecure = steamLoginSecureCookie.Value,
+                SteamLogin = _credentials.Login,
+                SteamID = ulong.Parse(finalizeLoginData.SteamID)
+            };
 
-        if (sessionIdCookie is null || steamLoginSecureCookie is null || !ulong.TryParse(_credentials.SteamId, out var steamId))
-        {
-            return (false, "Обновление сессии не удалось");
-        }
-
-        _credentials.SteamGuardAccount.Session = new SessionData
-        {
-            SessionID = sessionIdCookie.Value,
-            SteamLoginSecure = steamLoginSecureCookie.Value,
-            SteamLogin = _credentials.Login,
-            SteamID = steamId
-        };
-
-        _cookieContainer = CreateCookieContainerWithSession(_credentials.SteamGuardAccount.Session);
+            _cookieContainer = CreateCookieContainerWithSession(_credentials.SteamGuardAccount.Session);
         
-        return (true, "");
+            return (true, "Стим-сесиия успешно обновлена");
+        }
+
+        return (false, "Не удалось обновить стим-сессию");
     }
 
     private (bool Success, string Message) TryLogin()

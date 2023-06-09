@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text;
 using BotLooter;
+using BotLooter.Helpers;
 using BotLooter.Integrations.Yar;
 using BotLooter.Looting;
 using BotLooter.Resources;
