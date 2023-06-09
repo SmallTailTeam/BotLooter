@@ -11,6 +11,7 @@ public class Configuration
     public string SecretsDirectoryPath { get; set; } = "";
     public string AccountsFilePath { get; set; } = "";
     public string SteamSessionsDirectoryPath { get; set; } = "";
+    public string SavedSessionsDirectoryPath { get; set; } = "";
     public string ProxiesFilePath { get; set; } = "proxies.txt";
     public int DelayBetweenAccountsSeconds { get; set; } = 30;
     public int DelayInventoryEmptySeconds { get; set; } = 10;

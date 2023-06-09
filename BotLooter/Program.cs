@@ -138,7 +138,7 @@ List<LootClient> CreateLootClients()
     {
         var restClient = clientProvider.Provide();
             
-        var steamSession = new SteamSession(credentials, restClient);
+        var steamSession = new SteamUserSession(credentials, restClient, config.SavedSessionsDirectoryPath);
         var steamWeb = new SteamWeb(steamSession);
         var lootClient = new LootClient(credentials, steamSession, steamWeb);
     

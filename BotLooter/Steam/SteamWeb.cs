@@ -9,12 +9,12 @@ namespace BotLooter.Steam;
 
 public class SteamWeb
 {
-    private readonly SteamSession _session;
+    private readonly SteamUserSession _userSession;
     private readonly IHtmlParser _htmlParser;
 
-    public SteamWeb(SteamSession session)
+    public SteamWeb(SteamUserSession userSession)
     {
-        _session = session;
+        _userSession = userSession;
         _htmlParser = new HtmlParser();
     }
     
@@ -24,13 +24,13 @@ public class SteamWeb
         request.AddParameter("l", "english");
         request.AddParameter("count", count);
 
-        return await _session.WebRequest<GetInventoryResponse>(request);
+        return await _userSession.WebRequest<GetInventoryResponse>(request);
     }
     
     public async Task<RestResponse<SendTradeOfferResponse>> SendTradeOffer(TradeOfferUrl tradeOfferUrl, JsonTradeOffer jsonTradeOffer)
     {
         var request = new RestRequest(tradeOfferUrl.ToString());
-        await _session.WebRequest(request);
+        await _userSession.WebRequest(request);
         
         request = new RestRequest("https://steamcommunity.com/tradeoffer/new/send", Method.Post);
         request.AddHeader("referer", $"https://steamcommunity.com/tradeoffer/new/?partner={tradeOfferUrl.Partner}");;
@@ -46,7 +46,7 @@ public class SteamWeb
         
         request.AddParameter("json_tradeoffer",JsonConvert.SerializeObject(jsonTradeOffer));
         
-        return await _session.WebRequest<SendTradeOfferResponse>(request, true);
+        return await _userSession.WebRequest<SendTradeOfferResponse>(request, true);
     }
 
     public async Task<string> GetHelpWhyCantITradeTime()
@@ -59,7 +59,7 @@ public class SteamWeb
         request.AddHeader("Sec-Fetch-Mode", "navigate");
         request.AddHeader("Sec-Fetch-Site", "cross-site");
 
-        var response = await _session.WebRequest(request);
+        var response = await _userSession.WebRequest(request);
 
         if (response.Content is null)
         {
