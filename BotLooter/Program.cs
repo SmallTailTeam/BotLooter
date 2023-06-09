@@ -9,6 +9,7 @@ using RestSharp;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
     .WriteTo.Console(outputTemplate: "{Timestamp:HH:mm:ss} {Level:w3} : {Message:lj}{NewLine}{Exception}")
     .CreateLogger();
 
@@ -21,7 +22,7 @@ AppDomain.CurrentDomain.UnhandledException += (_, eventArgs) =>
     Console.ReadKey();
 };
 
-var version = new Version(0, 1, 4);
+var version = new Version(0, 2, 0);
 
 var versionChecker = new VersionChecker(Log.Logger);
 await versionChecker.Check(version);

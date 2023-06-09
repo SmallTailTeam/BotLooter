@@ -3,6 +3,7 @@ using BotLooter.Resources;
 using Polly;
 using Polly.Retry;
 using RestSharp;
+using Serilog;
 using SteamAuth;
 
 namespace BotLooter.Steam;
@@ -67,6 +68,11 @@ public class SteamSession
     
     private async ValueTask<bool> IsSessionAlive()
     {
+        if (_cookieContainer?.GetAllCookies().Any(c => c.Name == "steamLoginSecure") == false)
+        {
+            return false;
+        }
+        
         var request = new RestRequest("https://store.steampowered.com/account", Method.Head);
 
         request.AddHeader("Accept", "*/*");
@@ -91,6 +97,11 @@ public class SteamSession
 
     private async ValueTask<bool> TryRefreshSession()
     {
+        if (_credentials.SteamGuardAccount.Session is null)
+        {
+            return false;
+        }
+        
         if (await _credentials.SteamGuardAccount.RefreshSessionAsync())
         {
             _cookieContainer = CreateCookieContainerWithSession(_credentials.SteamGuardAccount.Session);
@@ -111,14 +122,15 @@ public class SteamSession
         }
 
         _cookieContainer = new CookieContainer();
-        _cookieContainer.Add(new Cookie("steamRefresh_steam", $"{_credentials.SteamId}||{_credentials.RefreshToken}", "/", "login.steampowered.com"));
 
-        var request = new RestRequest("https://login.steampowered.com/jwt/refresh?redir=https://steamcommunity.com/");
+        var request = new RestRequest("https://login.steampowered.com/jwt/refresh");
+        request.AddHeader("Cookie", $"steamRefresh_steam={_credentials.SteamId}||{_credentials.RefreshToken}");
+        request.AddQueryParameter("redir", "https://steamcommunity.com/");
 
         var response = await WebRequest(request);
 
         // Following redirects manually here due to cookies not being saved otherwise
-        for (var i = 0; i < 2; i++)
+        while (response.StatusCode == HttpStatusCode.Redirect)
         {
             if (response.Headers?.FirstOrDefault(h => h.Name == "Location") is not { Value: not null } location)
             {
@@ -135,7 +147,7 @@ public class SteamSession
 
         if (sessionIdCookie is null || steamLoginSecureCookie is null || !ulong.TryParse(_credentials.SteamId, out var steamId))
         {
-            return (false, "Обновление сессии не удолось");
+            return (false, "Обновление сессии не удалось");
         }
 
         _credentials.SteamGuardAccount.Session = new SessionData
@@ -145,6 +157,8 @@ public class SteamSession
             SteamLogin = _credentials.Login,
             SteamID = steamId
         };
+
+        _cookieContainer = CreateCookieContainerWithSession(_credentials.SteamGuardAccount.Session);
         
         return (true, "");
     }

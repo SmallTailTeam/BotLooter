@@ -8,9 +8,9 @@ public class Configuration
 {
     public string Mode { get; set; } = "LootAll";
     public string LootTradeOfferUrl { get; set; } = "";
-    public string SecretsDirectoryPath { get; set; } = "secrets";
-    public string AccountsFilePath { get; set; } = "accounts.txt";
-    public string SteamSessionsDirectoryPath { get; set; } = "steamsessions";
+    public string SecretsDirectoryPath { get; set; } = "";
+    public string AccountsFilePath { get; set; } = "";
+    public string SteamSessionsDirectoryPath { get; set; } = "";
     public string ProxiesFilePath { get; set; } = "proxies.txt";
     public int DelayBetweenAccountsSeconds { get; set; } = 30;
     public int DelayInventoryEmptySeconds { get; set; } = 10;

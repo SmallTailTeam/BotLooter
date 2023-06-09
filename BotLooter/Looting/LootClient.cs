@@ -5,6 +5,7 @@ using BotLooter.Steam.Contracts.Responses;
 using Polly;
 using Polly.Retry;
 using RestSharp;
+using Serilog;
 
 namespace BotLooter.Looting;
 
@@ -36,6 +37,8 @@ public class LootClient
         {
             return (null, ensureSessionMessage);
         }
+        
+        Log.Logger.Debug("{Login} {SessionType}", Credentials.Login, ensureSessionMessage);
 
         var (assets, getAssetsMessage) = await GetAssetsToSend(_steamWeb, Credentials.SteamGuardAccount.Session.SteamID, inventories);
 

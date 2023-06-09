@@ -1,4 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
+using Newtonsoft.Json;
 using Serilog;
 using SteamAuth;
 
@@ -58,18 +61,33 @@ public class SteamAccountCredentials
                 continue;
             }
 
-            var accountCredentials = new SteamAccountCredentials(steamSessionFile.Username, steamSessionFile.Password, new SteamGuardAccount
+            var steamGuardAccount = new SteamGuardAccount
             {
                 AccountName = steamSessionFile.Username,
                 SharedSecret = steamSessionFile.SharedSecret,
-                IdentitySecret = steamSessionFile.IdentitySecret
-            });
-
-            accountCredentials.RefreshToken = steamSessionFile.RefreshToken;
-            accountCredentials.SteamId = steamSessionFile.SteamId;
+                IdentitySecret = steamSessionFile.IdentitySecret,
+                DeviceID = GetDeviceId(steamSessionFile.SteamId)
+            };
+            
+            var accountCredentials = new SteamAccountCredentials(steamSessionFile.Username, steamSessionFile.Password, steamGuardAccount)
+            {
+                SteamId = steamSessionFile.SteamId,
+                RefreshToken = steamSessionFile.RefreshToken
+            };
 
             loadedAccounts.Add(accountCredentials);
         }
+    }
+    
+    private static string GetDeviceId(string steamId)
+    {
+        var bytes = Encoding.UTF8.GetBytes(steamId);
+        var hashBytes = SHA1.HashData(bytes);
+        var hex = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+
+        var formattedHex = Regex.Replace(hex, @"^([0-9a-f]{8})([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{12}).*$", "$1-$2-$3-$4-$5");
+        
+        return "android:" + formattedHex;
     }
 
     private static async Task LoadFromSecrets(List<SteamAccountCredentials> loadedAccounts, string accountsFile, string secretsDirectory)
