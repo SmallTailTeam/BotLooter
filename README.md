@@ -17,8 +17,10 @@ BotLooter.Config.json
 {
   "LootTradeOfferUrl": "",
   
-  "SecretsDirectoryPath": "secrets",
-  "AccountsFilePath": "accounts.txt",
+  "SecretsDirectoryPath": "",
+  "AccountsFilePath": "",
+  "SteamSessionsDirectoryPath": "",
+  "SavedSessionsDirectoryPath": "",
   "ProxiesFilePath": "proxies.txt",
   
   "DelayBetweenAccountsSeconds": 30,
@@ -52,6 +54,17 @@ Cсылка на трейд оффер, на который будут отпр�
 
 ### `"AccountsFilePath"`
 Путь к файлу с аккаунтами формата login:password
+
+---
+
+### `"SteamSessionsDirectoryPath"`
+Путь к папке с файлами .steamsession. Можно указать вместе с МаФайлами или заместо.
+
+---
+
+### `"SavedSessionsDirectoryPath"`
+Путь к папке с сохранёнными сессиями, в неё будут сохранятся сессии после авторизации, а потом при необходимости переиспользоваться.
+Если оставить пустым - сессии не будут сохранятся.
 
 ---
 
