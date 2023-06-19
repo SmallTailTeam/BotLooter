@@ -1,12 +1,8 @@
-﻿using System.Net;
-using System.Text;
+﻿using System.Text;
 using BotLooter;
-using BotLooter.Helpers;
-using BotLooter.Integrations.Yar;
 using BotLooter.Looting;
 using BotLooter.Resources;
 using BotLooter.Steam;
-using RestSharp;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -59,26 +55,10 @@ FlowUtils.WaitForApproval("Аккаунтов для лута: {Count}", account
 
 var lootClients = CreateLootClients();
 
-if (config.Yar is not null)
-{
-    var yarIntegration = new YarIntegration(Log.Logger, config, config.Yar, lootClients);
-    await yarIntegration.Integrate();
-}
-
-if (config.Mode == "LootAll")
-{
-    var looter = new Looter(Log.Logger);
-    await looter.Loot(lootClients, config.LootTradeOfferUrl, config);
+var looter = new Looter(Log.Logger);
+await looter.Loot(lootClients, config.LootTradeOfferUrl, config);
     
-    FlowUtils.WaitForExit();
-}
-
-FlowUtils.AbortWithError($"""
-
-Введён неизвестный режим работы '{config.Mode}', поддерживаемые режимы:
-LootAll
-Yar/WatchRewards
-""");
+FlowUtils.WaitForExit();
 
 async Task<IRestClientProvider?> GetClientProvider()
 {
