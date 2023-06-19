@@ -1,10 +1,12 @@
 ﻿using System.Text;
 using BotLooter;
+using BotLooter.Looting;
 using BotLooter.Resources;
 using BotLooter.Steam;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
     .WriteTo.Console(outputTemplate: "{Timestamp:HH:mm:ss} {Level:w3} : {Message:lj}{NewLine}{Exception}")
     .CreateLogger();
 
@@ -17,7 +19,7 @@ AppDomain.CurrentDomain.UnhandledException += (_, eventArgs) =>
     Console.ReadKey();
 };
 
-var version = new Version(0, 1, 4);
+var version = new Version(0, 2, 0);
 
 var versionChecker = new VersionChecker(Log.Logger);
 await versionChecker.Check(version);
@@ -32,7 +34,7 @@ if (configLoadResult.Config is not {} config)
 Log.Logger.Information("Инвентари для лута: {Inventories}", string.Join(", ", config.Inventories));
 
 FlowUtils.AskForApproval = config.AskForApproval;
-FlowUtils.ExitOnFinish = config.ExitOnFinish;
+FlowUtils.AskForExit = !config.ExitOnFinish;
 
 var clientProvider = await GetClientProvider();
 if (clientProvider is null)
@@ -42,7 +44,7 @@ if (clientProvider is null)
 
 CheckThreadCount();
 
-var credentialsLoadResult = await SteamAccountCredentials.TryLoadFromFiles(config.AccountsFilePath, config.SecretsDirectoryPath);
+var credentialsLoadResult = await SteamAccountCredentials.TryLoadFromFiles(config);
 if (credentialsLoadResult.LootAccounts is not { } accountCredentials)
 {
     FlowUtils.AbortWithError(credentialsLoadResult.Message);
@@ -54,16 +56,15 @@ FlowUtils.WaitForApproval("Аккаунтов для лута: {Count}", account
 var lootClients = CreateLootClients();
 
 var looter = new Looter(Log.Logger);
-
 await looter.Loot(lootClients, config.LootTradeOfferUrl, config);
-
+    
 FlowUtils.WaitForExit();
 
-async Task<IClientProvider?> GetClientProvider()
+async Task<IRestClientProvider?> GetClientProvider()
 {
     if (string.IsNullOrWhiteSpace(config.ProxiesFilePath))
     {
-        var provider = new LocalClientProvider();
+        var provider = new LocalRestClientProvider();
 
         FlowUtils.WaitForApproval("Прокси не указаны, используется локальный клиент.");
         
@@ -71,7 +72,7 @@ async Task<IClientProvider?> GetClientProvider()
     }
     else
     {
-        var proxyPoolLoadResult = await ProxyClientProvider.TryLoadFromFile(config.ProxiesFilePath);
+        var proxyPoolLoadResult = await ProxyRestClientProvider.TryLoadFromFile(config.ProxiesFilePath);
 
         if (proxyPoolLoadResult.ProxyPool is not { } proxyPool)
         {
@@ -79,13 +80,13 @@ async Task<IClientProvider?> GetClientProvider()
             return null;
         }
 
-        if (proxyPool.ClientCount == 0)
+        if (proxyPool.AvailableClientsCount == 0)
         {
             FlowUtils.AbortWithError($"В файле '{config.ProxiesFilePath}' отсутствуют прокси");
             return null;
         }
         
-        FlowUtils.WaitForApproval("Загружено прокси: {Count}", proxyPool.ClientCount);
+        FlowUtils.WaitForApproval("Загружено прокси: {Count}", proxyPool.AvailableClientsCount);
 
         return proxyPool;
     }
@@ -93,19 +94,19 @@ async Task<IClientProvider?> GetClientProvider()
 
 void CheckThreadCount()
 {
-    if (config.LootThreadCount > clientProvider.ClientCount)
+    if (config.LootThreadCount > clientProvider.AvailableClientsCount)
     {
         switch (clientProvider)
         {
-            case ProxyClientProvider:
-                Log.Logger.Warning("Потоков {ThreadCount} > Прокси {ClientCount}. Количество потоков будет уменьшено до количества прокси.", config.LootThreadCount, clientProvider.ClientCount);
+            case ProxyRestClientProvider:
+                Log.Logger.Warning("Потоков {ThreadCount} больше чем прокси {ClientCount}. Количество потоков будет уменьшено до количества прокси.", config.LootThreadCount, clientProvider.AvailableClientsCount);
                 break;
-            case LocalClientProvider:
+            case LocalRestClientProvider:
                 Log.Logger.Warning("Используется локальный клиент, количество потоков будет уменьшено с {ThreadCount} до {ReducedCount}.", config.LootThreadCount, 1);
                 break;
         }
 
-        config.LootThreadCount = clientProvider.ClientCount;
+        config.LootThreadCount = clientProvider.AvailableClientsCount;
     }
 }
 
@@ -117,7 +118,7 @@ List<LootClient> CreateLootClients()
     {
         var restClient = clientProvider.Provide();
             
-        var steamSession = new SteamSession(credentials, restClient);
+        var steamSession = new SteamUserSession(credentials, restClient, config.SavedSessionsDirectoryPath);
         var steamWeb = new SteamWeb(steamSession);
         var lootClient = new LootClient(credentials, steamSession, steamWeb);
     

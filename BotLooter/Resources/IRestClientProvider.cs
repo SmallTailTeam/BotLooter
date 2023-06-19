@@ -2,9 +2,9 @@
 
 namespace BotLooter.Resources;
 
-public interface IClientProvider
+public interface IRestClientProvider
 {
-    int ClientCount { get; }
+    int AvailableClientsCount { get; }
     
     RestClient Provide();
 }

@@ -6,7 +6,7 @@ namespace BotLooter;
 public static class FlowUtils
 {
     public static bool AskForApproval { get; set; }
-    public static bool ExitOnFinish { get; set; }
+    public static bool AskForExit { get; set; }
     
     public static void AbortWithError(string error)
     {
@@ -42,7 +42,7 @@ public static class FlowUtils
             Log.Logger.Information(message);
         }
 
-        if (!ExitOnFinish)
+        if (AskForExit)
         {
             Log.Logger.Information("Нажмите '{Keys}' для выхода.", "ctrl + c");
 

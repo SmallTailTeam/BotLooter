@@ -1,23 +1,24 @@
-﻿using System.Net;
-using BotLooter.Resources;
+﻿using BotLooter.Resources;
+using BotLooter.Steam;
 using BotLooter.Steam.Contracts;
 using BotLooter.Steam.Contracts.Responses;
 using Polly;
 using Polly.Retry;
 using RestSharp;
+using Serilog;
 
-namespace BotLooter.Steam;
+namespace BotLooter.Looting;
 
 public class LootClient
 {
     public SteamAccountCredentials Credentials { get; }
     
-    private readonly SteamSession _steamSession;
+    private readonly SteamUserSession _steamSession;
     private readonly SteamWeb _steamWeb;
     
     private readonly AsyncRetryPolicy<RestResponse<GetInventoryResponse>> _getInventoryPolicy;
 
-    public LootClient(SteamAccountCredentials credentials, SteamSession steamSession, SteamWeb steamWeb)
+    public LootClient(SteamAccountCredentials credentials, SteamUserSession steamSession, SteamWeb steamWeb)
     {
         Credentials = credentials;
         _steamSession = steamSession;
@@ -36,6 +37,8 @@ public class LootClient
         {
             return (null, ensureSessionMessage);
         }
+        
+        Log.Logger.Debug("{Login} : {SessionType}", Credentials.Login, ensureSessionMessage);
 
         var (assets, getAssetsMessage) = await GetAssetsToSend(_steamWeb, Credentials.SteamGuardAccount.Session.SteamID, inventories);
 
