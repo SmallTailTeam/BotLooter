@@ -13,17 +13,17 @@ public class SteamUserSession
 {
     private readonly SteamAccountCredentials _credentials;
     private readonly RestClient _restClient;
-    private readonly string _savedSessionsDirectroyPath;
+    private readonly string _savedSessionsDirectoryPath;
 
     private CookieContainer? _cookieContainer;
 
     private readonly AsyncRetryPolicy<bool> _acceptConfirmationPolicy;
 
-    public SteamUserSession(SteamAccountCredentials credentials, RestClient restClient, string savedSessionsDirectroyPath)
+    public SteamUserSession(SteamAccountCredentials credentials, RestClient restClient, string savedSessionsDirectoryPath)
     {
         _credentials = credentials;
         _restClient = restClient;
-        _savedSessionsDirectroyPath = savedSessionsDirectroyPath;
+        _savedSessionsDirectoryPath = savedSessionsDirectoryPath;
 
         if (restClient.Options.Proxy is { } proxy)
         {
@@ -53,7 +53,7 @@ public class SteamUserSession
 
     private async Task TryApplySavedSession()
     {
-        if (string.IsNullOrWhiteSpace(_savedSessionsDirectroyPath))
+        if (string.IsNullOrWhiteSpace(_savedSessionsDirectoryPath))
         {
             return;
         }
@@ -63,7 +63,7 @@ public class SteamUserSession
             return;
         }
 
-        var sessionFilePath = Path.Combine(_savedSessionsDirectroyPath, $"{_credentials.Login}.steamweb");
+        var sessionFilePath = Path.Combine(_savedSessionsDirectoryPath, $"{_credentials.Login}.steamweb");
 
         if (!File.Exists(sessionFilePath))
         {
@@ -97,7 +97,7 @@ public class SteamUserSession
 
     private async Task TrySaveSession(SteamWebCookies webCookies)
     {
-        if (string.IsNullOrWhiteSpace(_savedSessionsDirectroyPath))
+        if (string.IsNullOrWhiteSpace(_savedSessionsDirectoryPath))
         {
             return;
         }
@@ -107,11 +107,11 @@ public class SteamUserSession
             return;
         }
 
-        Directory.CreateDirectory(_savedSessionsDirectroyPath);
+        Directory.CreateDirectory(_savedSessionsDirectoryPath);
 
         var savedSession = JsonConvert.SerializeObject(webCookies, Formatting.Indented);
         
-        var sessionFilePath = Path.Combine(_savedSessionsDirectroyPath, $"{_credentials.Login}.steamweb");
+        var sessionFilePath = Path.Combine(_savedSessionsDirectoryPath, $"{_credentials.Login}.steamweb");
 
         await File.WriteAllTextAsync(sessionFilePath, savedSession);
     }
