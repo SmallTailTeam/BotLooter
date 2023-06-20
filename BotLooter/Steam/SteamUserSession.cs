@@ -38,8 +38,8 @@ public class SteamUserSession
     public async ValueTask<(bool IsSession, string Message)> TryEnsureSession()
     {
         await TryApplySavedSession();
-        
-        _cookieContainer ??= CreateCookieContainerWithSession(_credentials.SteamGuardAccount.Session);
+
+        _cookieContainer ??= new CookieContainer();
 
         if (await IsSessionAlive())
         {
@@ -88,6 +88,8 @@ public class SteamUserSession
                 SteamID = ulong.Parse(webCookies.SteamId),
                 SteamLogin = _credentials.Login
             };
+            
+            _cookieContainer = CreateCookieContainerWithSession(_credentials.SteamGuardAccount.Session);
         }
         catch
         {

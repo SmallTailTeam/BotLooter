@@ -40,7 +40,7 @@ public class LootClient
         
         Log.Logger.Debug("{Login} : {SessionType}", Credentials.Login, ensureSessionMessage);
 
-        var (assets, getAssetsMessage) = await GetAssetsToSend(_steamWeb, Credentials.SteamGuardAccount.Session.SteamID, inventories);
+        var (assets, getAssetsMessage) = await GetAssetsToSend(inventories);
 
         if (assets is null)
         {
@@ -93,7 +93,7 @@ public class LootClient
         return (tradeOffer.Me.Assets.Count, $"Залутан! Предметов: {tradeOffer.Me.Assets.Count}");
     }
 
-    private async Task<(List<Asset>? Assets, string message)> GetAssetsToSend(SteamWeb web, ulong steamId64, List<string> inventories)
+    private async Task<(List<Asset>? Assets, string message)> GetAssetsToSend(List<string> inventories)
     {
         var filteredOut = new HashSet<string>();
         
@@ -113,7 +113,7 @@ public class LootClient
             var inventoryId = split[0];
             var contextId = split[1];
             
-            var inventoryResponse = await _getInventoryPolicy.ExecuteAsync(() => web.GetInventory(steamId64, inventoryId, contextId));
+            var inventoryResponse = await _getInventoryPolicy.ExecuteAsync(() => _steamWeb.GetInventory(Credentials.SteamGuardAccount.Session.SteamID, inventoryId, contextId));
             
             if (inventoryResponse.Data is not {} inventoryData)
             {
