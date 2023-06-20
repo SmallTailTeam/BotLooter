@@ -26,19 +26,31 @@ public class SteamAccountCredentials
     {
         var loadedAccounts = new List<SteamAccountCredentials>();
 
-        await LoadFromSteamSessions(loadedAccounts, config.SteamSessionsDirectoryPath);
-        await LoadFromSecrets(loadedAccounts, config.AccountsFilePath, config.SecretsDirectoryPath);
+        Log.Logger.Information("Загружаю аккаунты...");
+        
+        var loadedCountFromSteamSessions = await LoadFromSteamSessions(loadedAccounts, config.SteamSessionsDirectoryPath);
+        var loadedCountFromSecrets = await LoadFromSecrets(loadedAccounts, config.AccountsFilePath, config.SecretsDirectoryPath);
 
+        Log.Logger.Information("Стим-сессии: {Count}", loadedCountFromSteamSessions);
+        Log.Logger.Information("Секреты: {Count}", loadedCountFromSecrets);
+        
         return (loadedAccounts, "");
     }
 
-    private static async Task LoadFromSteamSessions(List<SteamAccountCredentials> loadedAccounts, string steamSessionsDirectoryPath)
+    private static async Task<int> LoadFromSteamSessions(List<SteamAccountCredentials> loadedAccounts, string steamSessionsDirectoryPath)
     {
+        if (string.IsNullOrWhiteSpace(steamSessionsDirectoryPath))
+        {
+            return 0;
+        }
+        
         if (!Directory.Exists(steamSessionsDirectoryPath))
         {
             Log.Logger.Warning($"Папки с стим-сессиями '{steamSessionsDirectoryPath}' не существует");
-            return;
+            return 0;
         }
+
+        var loadedCount = 0;
 
         foreach (var filePath in Directory.GetFiles(steamSessionsDirectoryPath, "*.steamsession"))
         {
@@ -76,7 +88,10 @@ public class SteamAccountCredentials
             };
 
             loadedAccounts.Add(accountCredentials);
+            loadedCount++;
         }
+
+        return loadedCount;
     }
     
     private static string GetDeviceId(string steamId)
@@ -90,24 +105,27 @@ public class SteamAccountCredentials
         return "android:" + formattedHex;
     }
 
-    private static async Task LoadFromSecrets(List<SteamAccountCredentials> loadedAccounts, string accountsFile, string secretsDirectory)
+    private static async Task<int> LoadFromSecrets(List<SteamAccountCredentials> loadedAccounts, string accountsFile, string secretsDirectory)
     {
         if (string.IsNullOrWhiteSpace(accountsFile) || string.IsNullOrWhiteSpace(secretsDirectory))
         {
-            return;
+            return 0;
         }
         
         if (!File.Exists(accountsFile))
         {
             Log.Logger.Warning($"Файла с аккаунтами '{accountsFile}' не существует");
-            return;
+            return 0;
         }
-
+        
         if (!Directory.Exists(secretsDirectory))
         {
             Log.Logger.Warning($"Папки с секретами '{secretsDirectory}' не существует");
-            return;
+            return 0;
         }
+
+        var loadedCount = 0;
+
         
         var secrets = await GetSecretFiles(secretsDirectory);
 
@@ -139,7 +157,10 @@ public class SteamAccountCredentials
             }
 
             loadedAccounts.Add(new SteamAccountCredentials(login, password, secret));
+            loadedCount++;
         }
+
+        return loadedCount;
     }
 
     private static async Task<List<SteamGuardAccount>> GetSecretFiles(string directoryPath)

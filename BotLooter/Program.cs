@@ -6,7 +6,6 @@ using BotLooter.Steam;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Debug()
     .WriteTo.Console(outputTemplate: "{Timestamp:HH:mm:ss} {Level:w3} : {Message:lj}{NewLine}{Exception}")
     .CreateLogger();
 
@@ -19,7 +18,7 @@ AppDomain.CurrentDomain.UnhandledException += (_, eventArgs) =>
     Console.ReadKey();
 };
 
-var version = new Version(0, 2, 0);
+var version = new Version(0, 2, 1);
 
 var versionChecker = new VersionChecker(Log.Logger);
 await versionChecker.Check(version);
@@ -51,7 +50,7 @@ if (credentialsLoadResult.LootAccounts is not { } accountCredentials)
     return;
 }
 
-FlowUtils.WaitForApproval("Аккаунтов для лута: {Count}", accountCredentials.Count);
+FlowUtils.WaitForApproval("Всего аккаунтов для лута: {Count}", accountCredentials.Count);
 
 var lootClients = CreateLootClients();
 
