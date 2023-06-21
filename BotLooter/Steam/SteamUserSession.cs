@@ -27,7 +27,7 @@ public class SteamUserSession
 
         if (restClient.Options.Proxy is { } proxy)
         {
-            credentials.SteamGuardAccount.Proxy = (WebProxy)proxy;
+            credentials.SteamGuardAccount.Proxy = proxy;
         }
 
         _acceptConfirmationPolicy = Policy
