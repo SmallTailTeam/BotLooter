@@ -29,7 +29,7 @@ public class LootClient
             .WaitAndRetryAsync(3, _ => TimeSpan.FromSeconds(10));
     }
 
-    public async Task<(int? LootedItemCount, string Message)> TryLoot(TradeOfferUrl tradeOfferUrl, List<string> inventories)
+    public async Task<(int? LootedItemCount, string Message)> TryLoot(TradeOfferUrl tradeOfferUrl, List<string> inventories, bool ignoreNotMarketable)
     {
         var (isSession, ensureSessionMessage) = await _steamSession.TryEnsureSession();
 
@@ -40,7 +40,7 @@ public class LootClient
         
         Log.Logger.Debug("{Login} : {SessionType}", Credentials.Login, ensureSessionMessage);
 
-        var (assets, getAssetsMessage) = await GetAssetsToSend(inventories);
+        var (assets, getAssetsMessage) = await GetAssetsToSend(inventories, ignoreNotMarketable);
 
         if (assets is null)
         {
@@ -93,7 +93,7 @@ public class LootClient
         return (tradeOffer.Me.Assets.Count, $"Залутан! Предметов: {tradeOffer.Me.Assets.Count}");
     }
 
-    private async Task<(List<Asset>? Assets, string message)> GetAssetsToSend(List<string> inventories)
+    private async Task<(List<Asset>? Assets, string message)> GetAssetsToSend(List<string> inventories, bool ignoreNotMarketable)
     {
         var filteredOut = new HashSet<string>();
         
@@ -128,6 +128,14 @@ public class LootClient
             foreach (var description in inventoryData.Descriptions.Where(d => d.Tradable == 0))
             {
                 filteredOut.Add(description.Classid);
+            }
+
+            if (ignoreNotMarketable)
+            {
+                foreach (var description in inventoryData.Descriptions.Where(d => d.Marketable == 0))
+                {
+                    filteredOut.Add(description.Classid);
+                }
             }
 
             var notFilteredOutAssets = inventoryAssets.Where(a => !filteredOut.Contains(a.Classid));
