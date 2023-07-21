@@ -26,7 +26,7 @@ public class LootClient
         
         _getInventoryPolicy = Policy
             .HandleResult<RestResponse<GetInventoryResponse>>(x => x.Data is null)
-            .WaitAndRetryAsync(3, _ => TimeSpan.FromSeconds(10));
+            .WaitAndRetryAsync(5, _ => TimeSpan.FromSeconds(5));
     }
 
     public async Task<(int? LootedItemCount, string Message)> TryLoot(TradeOfferUrl tradeOfferUrl, List<string> inventories, bool ignoreNotMarketable)
