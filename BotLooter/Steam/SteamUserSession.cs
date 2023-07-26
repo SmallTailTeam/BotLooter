@@ -167,7 +167,7 @@ public class SteamUserSession
 
         if (webCookies.Cookies is null)
         {
-            return (false, $"Не удалось полчить веб-куки: {webCookies.Message}");
+            return (false, $"Не удалось получить веб-куки: {webCookies.Message}");
         }
         
         _credentials.SteamGuardAccount.Session = new SessionData
