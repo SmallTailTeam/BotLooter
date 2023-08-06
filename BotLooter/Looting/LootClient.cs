@@ -15,18 +15,12 @@ public class LootClient
     
     private readonly SteamUserSession _steamSession;
     private readonly SteamWeb _steamWeb;
-    
-    private readonly AsyncRetryPolicy<RestResponse<GetInventoryResponse>> _getInventoryPolicy;
 
     public LootClient(SteamAccountCredentials credentials, SteamUserSession steamSession, SteamWeb steamWeb)
     {
         Credentials = credentials;
         _steamSession = steamSession;
         _steamWeb = steamWeb;
-        
-        _getInventoryPolicy = Policy
-            .HandleResult<RestResponse<GetInventoryResponse>>(x => x.Data is null)
-            .WaitAndRetryAsync(5, _ => TimeSpan.FromSeconds(5));
     }
 
     public async Task<(int? LootedItemCount, string Message)> TryLoot(TradeOfferUrl tradeOfferUrl, List<string> inventories, bool ignoreNotMarketable)
@@ -113,32 +107,27 @@ public class LootClient
             var inventoryId = split[0];
             var contextId = split[1];
             
-            var inventoryResponse = await _getInventoryPolicy.ExecuteAsync(() => _steamWeb.GetInventory(Credentials.SteamGuardAccount.Session.SteamID, inventoryId, contextId));
+            var inventoryResponse = await _steamWeb.LoadInventory(inventoryId, contextId);
             
-            if (inventoryResponse.Data is not {} inventoryData)
+            if (inventoryResponse is not {} inventoryData)
             {
-                return (null, $"Не смог получить инвентарь {inventory}. StatusCode: {inventoryResponse.StatusCode}");
+                return (null, $"Не смог получить инвентарь {inventory}.");
             }
             
-            if (inventoryData.Assets is not {} inventoryAssets)
-            {
-                continue;
-            }
-            
-            foreach (var description in inventoryData.Descriptions.Where(d => d.Tradable == 0))
+            foreach (var description in inventoryData.Descriptions.Where(d => !d.Tradable))
             {
                 filteredOut.Add(description.Classid);
             }
 
             if (ignoreNotMarketable)
             {
-                foreach (var description in inventoryData.Descriptions.Where(d => d.Marketable == 0))
+                foreach (var description in inventoryData.Descriptions.Where(d => !d.Marketable))
                 {
                     filteredOut.Add(description.Classid);
                 }
             }
 
-            var notFilteredOutAssets = inventoryAssets.Where(a => !filteredOut.Contains(a.Classid));
+            var notFilteredOutAssets = inventoryData.Assets.Where(a => !filteredOut.Contains(a.Classid));
             
             assets.AddRange(notFilteredOutAssets);
 

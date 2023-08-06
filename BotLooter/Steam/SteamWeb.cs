@@ -17,14 +17,68 @@ public class SteamWeb
         _userSession = userSession;
         _htmlParser = new HtmlParser();
     }
-    
-    public async Task<RestResponse<GetInventoryResponse>> GetInventory(ulong steamId64, string inventoryId, string contextId, int count = 100)
-    {
-        var request = new RestRequest($"https://steamcommunity.com/inventory/{steamId64}/{inventoryId}/{contextId}");
-        request.AddParameter("l", "english");
-        request.AddParameter("count", count);
 
-        return await _userSession.WebRequest<GetInventoryResponse>(request);
+    public async Task<(HashSet<Description> Descriptions, HashSet<Asset> Assets)?> LoadInventory(string appId, string contextId)
+    {
+        string? startAssetId = null;
+
+        var descriptions = new HashSet<Description>();
+        var assets = new HashSet<Asset>();
+        
+        do
+        {
+            var inventoryResponse = await GetInventoryItemsWithDescriptions(appId, contextId, 10000, true, startAssetId);
+
+            if (inventoryResponse is null)
+            {
+                return null;
+            }
+
+            startAssetId = inventoryResponse.Response.LastAssetId;
+            
+            foreach (var description in inventoryResponse.Response.Descriptions)
+            {
+                descriptions.Add(description);
+            }
+            
+            foreach (var asset in inventoryResponse.Response.Assets)
+            {
+                assets.Add(asset);
+            }
+
+        } while (startAssetId is not null);
+
+        return (descriptions, assets);
+    }
+    
+    public async Task<GetInventoryItemsWithDescriptionsResponse?> GetInventoryItemsWithDescriptions(
+        string appId, 
+        string contextId,
+        int count = 10000,
+        bool getDescriptions = true,
+        string? startAssetId = null)
+    {
+        if (_userSession.SteamId is null || _userSession.AccessToken is null)
+        {
+            return null;
+        }
+        
+        var request = new RestRequest("https://api.steampowered.com/IEconService/GetInventoryItemsWithDescriptions/v1/");
+        request.AddParameter("steamid", _userSession.SteamId.Value);
+        request.AddParameter("appid", appId);
+        request.AddParameter("contextid", contextId);
+        request.AddParameter("count", count);
+        request.AddParameter("get_descriptions", getDescriptions);
+        request.AddParameter("access_token", _userSession.AccessToken);
+
+        if (startAssetId is not null)
+        {
+            request.AddParameter("start_assetid", startAssetId);
+        }
+
+        var response = await _userSession.WebRequest<GetInventoryItemsWithDescriptionsResponse>(request);
+        
+        return response.Data;
     }
     
     public async Task<RestResponse<SendTradeOfferResponse>> SendTradeOffer(TradeOfferUrl tradeOfferUrl, JsonTradeOffer jsonTradeOffer)

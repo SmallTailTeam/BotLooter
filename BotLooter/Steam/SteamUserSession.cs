@@ -10,7 +10,10 @@ namespace BotLooter.Steam;
 
 public class SteamUserSession
 {
-    private readonly SteamAccountCredentials _credentials;
+    public SteamAccountCredentials Credentials { get; }
+    public string? AccessToken { get; private set; }
+    public ulong? SteamId { get; private set; }
+    
     private readonly RestClient _restClient;
 
     private CookieContainer? _cookieContainer;
@@ -19,7 +22,7 @@ public class SteamUserSession
 
     public SteamUserSession(SteamAccountCredentials credentials, RestClient restClient)
     {
-        _credentials = credentials;
+        Credentials = credentials;
         _restClient = restClient;
 
         if (restClient.Options.Proxy is { } proxy)
@@ -81,10 +84,10 @@ public class SteamUserSession
         {
             var loginSession = new SteamLoginSession(request => _restClient.ExecuteAsync(request))
             {
-                Login = _credentials.Login,
-                Password = _credentials.Password,
-                SteamGuardCode = _credentials.SteamGuardAccount.GenerateSteamGuardCode(),
-                RefreshToken = _credentials.RefreshToken
+                Login = Credentials.Login,
+                Password = Credentials.Password,
+                SteamGuardCode = Credentials.SteamGuardAccount.GenerateSteamGuardCode(),
+                RefreshToken = Credentials.RefreshToken
             };
 
             if (loginSession.RefreshToken is null)
@@ -108,9 +111,9 @@ public class SteamUserSession
 
             ulong? steamId = null;
 
-            if (_credentials.SteamId is not null)
+            if (Credentials.SteamId is not null)
             {
-                steamId = ulong.Parse(_credentials.SteamId);
+                steamId = ulong.Parse(Credentials.SteamId);
             }
 
             steamId ??= loginSession.SteamId;
@@ -128,7 +131,10 @@ public class SteamUserSession
                 return (false, "sНе удалось получить веб-куки: (sessionid или steamLoginSecure не найдены)");
             }
 
-            _credentials.SteamGuardAccount.Session = new SessionData
+            AccessToken = loginSession.AccessToken;
+            SteamId = steamId;
+
+            Credentials.SteamGuardAccount.Session = new SessionData
             {
                 SessionID = sessionId,
                 SteamLoginSecure = steamLoginSecure,
@@ -153,7 +159,7 @@ public class SteamUserSession
             // Sometimes FetchConfirmationsAsync throws an exception, we probably don't want to exit the entire program when that happens
             try
             {
-                var confirmations = await _credentials.SteamGuardAccount.FetchConfirmationsAsync();
+                var confirmations = await Credentials.SteamGuardAccount.FetchConfirmationsAsync();
 
                 foreach (var confirmation in confirmations ?? Enumerable.Empty<Confirmation>())
                 {
@@ -162,7 +168,7 @@ public class SteamUserSession
                         continue;
                     }
 
-                    var isConfirmed = _credentials.SteamGuardAccount.AcceptConfirmation(confirmation);
+                    var isConfirmed = Credentials.SteamGuardAccount.AcceptConfirmation(confirmation);
 
                     return isConfirmed;
                 }
@@ -180,7 +186,7 @@ public class SteamUserSession
     {
         if (withSession)
         {
-            request.AddParameter("sessionid", _credentials.SteamGuardAccount.Session.SessionID);
+            request.AddParameter("sessionid", Credentials.SteamGuardAccount.Session.SessionID);
         }
         
         request.CookieContainer = _cookieContainer;
@@ -192,7 +198,7 @@ public class SteamUserSession
     {
         if (withSession)
         {
-            request.AddParameter("sessionid", _credentials.SteamGuardAccount.Session.SessionID);
+            request.AddParameter("sessionid", Credentials.SteamGuardAccount.Session.SessionID);
         }
 
         request.CookieContainer = _cookieContainer;
