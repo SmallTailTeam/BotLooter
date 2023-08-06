@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using BotLooter.Resources;
-using Newtonsoft.Json;
 using Polly;
 using Polly.Retry;
 using RestSharp;
@@ -13,17 +12,15 @@ public class SteamUserSession
 {
     private readonly SteamAccountCredentials _credentials;
     private readonly RestClient _restClient;
-    private readonly string _savedSessionsDirectoryPath;
 
     private CookieContainer? _cookieContainer;
 
     private readonly AsyncRetryPolicy<bool> _acceptConfirmationPolicy;
 
-    public SteamUserSession(SteamAccountCredentials credentials, RestClient restClient, string savedSessionsDirectoryPath)
+    public SteamUserSession(SteamAccountCredentials credentials, RestClient restClient)
     {
         _credentials = credentials;
         _restClient = restClient;
-        _savedSessionsDirectoryPath = savedSessionsDirectoryPath;
 
         if (restClient.Options.Proxy is { } proxy)
         {
@@ -37,8 +34,6 @@ public class SteamUserSession
 
     public async ValueTask<(bool IsSession, string Message)> TryEnsureSession()
     {
-        await TryApplySavedSession();
-
         _cookieContainer ??= new CookieContainer();
 
         if (await IsSessionAlive())
@@ -49,73 +44,6 @@ public class SteamUserSession
         var loginResult = await TryLogin();
         
         return (loginResult.Success, loginResult.Message);
-    }
-
-    private async Task TryApplySavedSession()
-    {
-        if (string.IsNullOrWhiteSpace(_savedSessionsDirectoryPath))
-        {
-            return;
-        }
-
-        if (_credentials.SteamGuardAccount.Session is not null)
-        {
-            return;
-        }
-
-        var sessionFilePath = Path.Combine(_savedSessionsDirectoryPath, $"{_credentials.Login}.steamweb");
-
-        if (!File.Exists(sessionFilePath))
-        {
-            return;
-        }
-
-        var sessionFileContents = await File.ReadAllTextAsync(sessionFilePath);
-
-        try
-        {
-            var webCookies = JsonConvert.DeserializeObject<SteamWebCookies>(sessionFileContents);
-
-            if (webCookies is null)
-            {
-                return;
-            }
-
-            _credentials.SteamGuardAccount.Session = new SessionData
-            {
-                SessionID = webCookies.SessionId,
-                SteamLoginSecure = webCookies.SteamLoginSecure,
-                SteamID = ulong.Parse(webCookies.SteamId),
-                SteamLogin = _credentials.Login
-            };
-            
-            _cookieContainer = CreateCookieContainerWithSession(_credentials.SteamGuardAccount.Session);
-        }
-        catch
-        {
-            // ignored
-        }
-    }
-
-    private async Task TrySaveSession(SteamWebCookies webCookies)
-    {
-        if (string.IsNullOrWhiteSpace(_savedSessionsDirectoryPath))
-        {
-            return;
-        }
-
-        if (_credentials.SteamGuardAccount.Session is null)
-        {
-            return;
-        }
-
-        Directory.CreateDirectory(_savedSessionsDirectoryPath);
-
-        var savedSession = JsonConvert.SerializeObject(webCookies, Formatting.Indented);
-        
-        var sessionFilePath = Path.Combine(_savedSessionsDirectoryPath, $"{_credentials.Login}.steamweb");
-
-        await File.WriteAllTextAsync(sessionFilePath, savedSession);
     }
 
     private async ValueTask<bool> IsSessionAlive()
@@ -149,63 +77,63 @@ public class SteamUserSession
 
     private async Task<(bool Success, string Message)> TryLogin()
     {
-        var loginSession = new SteamLoginSession(_restClient)
+        var loginSession = new SteamLoginSession(request => _restClient.ExecuteAsync(request))
         {
             Login = _credentials.Login,
             Password = _credentials.Password,
-            SteamGuardCode = _credentials.SteamGuardAccount.GenerateSteamGuardCode()
+            SteamGuardCode = _credentials.SteamGuardAccount.GenerateSteamGuardCode(),
+            RefreshToken = _credentials.RefreshToken
         };
-
-        var loginResult = await loginSession.LoginAsync();
-
-        if (!loginResult.Success)
+        
+        if (loginSession.RefreshToken is null)
         {
-            return (false, $"Не удалось авторизоваться: {loginResult.Message}");
+            var loginResult = await loginSession.LoginAsync();
+
+            if (!loginResult.Success)
+            {
+                return (false, $"Не удалось авторизоваться: {loginResult.Message}");
+            }
         }
 
-        var webCookies = await loginSession.GetWebCookies();
+        _cookieContainer = new CookieContainer();
 
-        if (webCookies.Cookies is null)
+        var webCookies = await loginSession.GetWebCookies(_cookieContainer);
+
+        if (!webCookies.Success)
         {
             return (false, $"Не удалось получить веб-куки: {webCookies.Message}");
+        }
+
+        ulong? steamId = null;
+
+        if (_credentials.SteamId is not null)
+        {
+            steamId = ulong.Parse(_credentials.SteamId);
+        }
+
+        steamId ??= loginSession.SteamId;
+        
+        if (steamId is null)
+        {
+            return (false, "Отсутсвует SteamId");
+        }
+
+        var sessionId = _cookieContainer.GetAllCookies().FirstOrDefault(c => c.Name == "sessionid")?.Value;
+        var steamLoginSecure = _cookieContainer.GetAllCookies().FirstOrDefault(c => c.Name == "steamLoginSecure")?.Value;
+
+        if (sessionId is null || steamLoginSecure is null)
+        {
+            return (false, "sНе удалось получить веб-куки: (sessionid или steamLoginSecure не найдены)");
         }
         
         _credentials.SteamGuardAccount.Session = new SessionData
         {
-            SessionID = webCookies.Cookies.SessionId,
-            SteamLoginSecure = webCookies.Cookies.SteamLoginSecure,
-            SteamID = ulong.Parse(webCookies.Cookies.SteamId),
-            SteamLogin = _credentials.Login
+            SessionID = sessionId,
+            SteamLoginSecure = steamLoginSecure,
+            SteamID = steamId.Value
         };
 
-        await TrySaveSession(webCookies.Cookies);
-        
-        _cookieContainer = CreateCookieContainerWithSession(_credentials.SteamGuardAccount.Session);
-
         return (true, "Авторизовался");
-    }
-
-    private CookieContainer CreateCookieContainerWithSession(SessionData? sessionData)
-    {
-        var cookieContainer = new CookieContainer();
-
-        if (sessionData is { SessionID: not null, SteamLoginSecure: not null })
-        {
-            const string sessionDomain = "steamcommunity.com";
-            const string storeSessionDomain = "store.steampowered.com";
-            const string helpSessionDomain = "help.steampowered.com";
-
-            cookieContainer.Add(new Cookie("sessionid", sessionData.SessionID, "/", sessionDomain));
-            cookieContainer.Add(new Cookie("steamLoginSecure", sessionData.SteamLoginSecure, "/", sessionDomain));
-
-            cookieContainer.Add(new Cookie("sessionid", sessionData.SessionID, "/", storeSessionDomain));
-            cookieContainer.Add(new Cookie("steamLoginSecure", sessionData.SteamLoginSecure, "/", storeSessionDomain));
-
-            cookieContainer.Add(new Cookie("sessionid", sessionData.SessionID, "/", helpSessionDomain));
-            cookieContainer.Add(new Cookie("steamLoginSecure", sessionData.SteamLoginSecure, "/", helpSessionDomain));
-        }
-
-        return cookieContainer;
     }
 
     public async ValueTask<bool> AcceptConfirmation(ulong id)

@@ -69,7 +69,7 @@ public class SteamAccountCredentials
 
             if (steamSessionFile is null)
             {
-                Log.Logger.Warning("Невалидный файл стим-сессии: {FilePath}", filePath);
+                Log.Logger.Warning("Невалидный файл стим-сессии '{FilePath}', поддерживаются только файлы версии 2", filePath);
                 continue;
             }
 
@@ -125,7 +125,6 @@ public class SteamAccountCredentials
         }
 
         var loadedCount = 0;
-
         
         var secrets = await GetSecretFiles(secretsDirectory);
 
