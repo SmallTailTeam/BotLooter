@@ -77,63 +77,73 @@ public class SteamUserSession
 
     private async Task<(bool Success, string Message)> TryLogin()
     {
-        var loginSession = new SteamLoginSession(request => _restClient.ExecuteAsync(request))
+        try
         {
-            Login = _credentials.Login,
-            Password = _credentials.Password,
-            SteamGuardCode = _credentials.SteamGuardAccount.GenerateSteamGuardCode(),
-            RefreshToken = _credentials.RefreshToken
-        };
-        
-        if (loginSession.RefreshToken is null)
-        {
-            var loginResult = await loginSession.LoginAsync();
-
-            if (!loginResult.Success)
+            var loginSession = new SteamLoginSession(request => _restClient.ExecuteAsync(request))
             {
-                return (false, $"Не удалось авторизоваться: {loginResult.Message}");
+                Login = _credentials.Login,
+                Password = _credentials.Password,
+                SteamGuardCode = _credentials.SteamGuardAccount.GenerateSteamGuardCode(),
+                RefreshToken = _credentials.RefreshToken
+            };
+
+            if (loginSession.RefreshToken is null)
+            {
+                var loginResult = await loginSession.LoginAsync();
+
+                if (!loginResult.Success)
+                {
+                    return (false, $"Не удалось авторизоваться: {loginResult.Message}");
+                }
             }
+
+            _cookieContainer = new CookieContainer();
+
+            var webCookies = await loginSession.GetWebCookies(_cookieContainer);
+
+            if (!webCookies.Success)
+            {
+                return (false, $"Не удалось получить веб-куки: {webCookies.Message}");
+            }
+
+            ulong? steamId = null;
+
+            if (_credentials.SteamId is not null)
+            {
+                steamId = ulong.Parse(_credentials.SteamId);
+            }
+
+            steamId ??= loginSession.SteamId;
+
+            if (steamId is null)
+            {
+                return (false, "Отсутсвует SteamId");
+            }
+
+            var sessionId = _cookieContainer.GetAllCookies().FirstOrDefault(c => c.Name == "sessionid")?.Value;
+            var steamLoginSecure = _cookieContainer.GetAllCookies().FirstOrDefault(c => c.Name == "steamLoginSecure")?.Value;
+
+            if (sessionId is null || steamLoginSecure is null)
+            {
+                return (false, "sНе удалось получить веб-куки: (sessionid или steamLoginSecure не найдены)");
+            }
+
+            _credentials.SteamGuardAccount.Session = new SessionData
+            {
+                SessionID = sessionId,
+                SteamLoginSecure = steamLoginSecure,
+                SteamID = steamId.Value
+            };
+
+            return (true, "Авторизовался");
         }
-
-        _cookieContainer = new CookieContainer();
-
-        var webCookies = await loginSession.GetWebCookies(_cookieContainer);
-
-        if (!webCookies.Success)
+        catch
         {
-            return (false, $"Не удалось получить веб-куки: {webCookies.Message}");
+            var isUsingProxy = _restClient.Options.Proxy is not null;
+
+            return (false,
+                $"Не удалось авторизоваться, возможно проблема со Стимом или {(isUsingProxy ? "прокси" : "интернетом")}");
         }
-
-        ulong? steamId = null;
-
-        if (_credentials.SteamId is not null)
-        {
-            steamId = ulong.Parse(_credentials.SteamId);
-        }
-
-        steamId ??= loginSession.SteamId;
-        
-        if (steamId is null)
-        {
-            return (false, "Отсутсвует SteamId");
-        }
-
-        var sessionId = _cookieContainer.GetAllCookies().FirstOrDefault(c => c.Name == "sessionid")?.Value;
-        var steamLoginSecure = _cookieContainer.GetAllCookies().FirstOrDefault(c => c.Name == "steamLoginSecure")?.Value;
-
-        if (sessionId is null || steamLoginSecure is null)
-        {
-            return (false, "sНе удалось получить веб-куки: (sessionid или steamLoginSecure не найдены)");
-        }
-        
-        _credentials.SteamGuardAccount.Session = new SessionData
-        {
-            SessionID = sessionId,
-            SteamLoginSecure = steamLoginSecure,
-            SteamID = steamId.Value
-        };
-
-        return (true, "Авторизовался");
     }
 
     public async ValueTask<bool> AcceptConfirmation(ulong id)
