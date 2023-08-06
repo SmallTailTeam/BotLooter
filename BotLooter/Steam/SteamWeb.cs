@@ -46,6 +46,11 @@ public class SteamWeb
                 assets.Add(asset);
             }
 
+            if (startAssetId is not null)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(2));
+            }
+
         } while (startAssetId is not null);
 
         return (descriptions, assets);
