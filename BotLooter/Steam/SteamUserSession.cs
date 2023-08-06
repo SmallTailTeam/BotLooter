@@ -128,7 +128,7 @@ public class SteamUserSession
 
             if (sessionId is null || steamLoginSecure is null)
             {
-                return (false, "sНе удалось получить веб-куки: (sessionid или steamLoginSecure не найдены)");
+                return (false, "Не удалось получить веб-куки: (sessionid или steamLoginSecure не найдены)");
             }
 
             AccessToken = loginSession.AccessToken;
