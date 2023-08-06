@@ -84,7 +84,7 @@ public class SteamAccountCredentials
             var accountCredentials = new SteamAccountCredentials(steamSessionFile.Username, steamSessionFile.Password, steamGuardAccount)
             {
                 SteamId = steamSessionFile.SteamId,
-                RefreshToken = steamSessionFile.RefreshToken
+                RefreshToken = steamSessionFile.WebRefreshToken
             };
 
             loadedAccounts.Add(accountCredentials);
