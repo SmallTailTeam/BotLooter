@@ -41,7 +41,7 @@ public class VersionChecker
             _logger.Information("BotLooter {Version} https://github.com/SmallTailTeam/BotLooter", currentVersion);
             return;
         }
-
+        
         if (currentVersion == releaseVersion)
         {
             _logger.Information("BotLooter {Version} https://github.com/SmallTailTeam/BotLooter", currentVersion);
@@ -57,7 +57,7 @@ public class VersionChecker
 
         if (currentVersion > releaseVersion)
         {
-            _logger.Information("Скорее всего вы используете dev версию BotLooter. Версия {YourVersion} > {LatestVersion}", currentVersion, releaseVersion);
+            _logger.Information("Скорее всего вы используете pre-release версию BotLooter. Версия {YourVersion} > {LatestVersion}", currentVersion, releaseVersion);
             return;
         }
     }
