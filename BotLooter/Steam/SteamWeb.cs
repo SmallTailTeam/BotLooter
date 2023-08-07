@@ -35,15 +35,21 @@ public class SteamWeb
             }
 
             startAssetId = inventoryResponse.Response.LastAssetId;
-            
-            foreach (var description in inventoryResponse.Response.Descriptions)
+
+            if (inventoryResponse.Response.Descriptions is not null)
             {
-                descriptions.Add(description);
+                foreach (var description in inventoryResponse.Response.Descriptions)
+                {
+                    descriptions.Add(description);
+                }
             }
-            
-            foreach (var asset in inventoryResponse.Response.Assets)
+
+            if (inventoryResponse.Response.Assets is not null)
             {
-                assets.Add(asset);
+                foreach (var asset in inventoryResponse.Response.Assets)
+                {
+                    assets.Add(asset);
+                }
             }
 
             if (startAssetId is not null)

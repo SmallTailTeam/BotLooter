@@ -123,10 +123,10 @@ public class MarketAction
 public class Response
 {
     [JsonProperty("assets")]
-    public List<Asset> Assets { get; set; }
+    public List<Asset>? Assets { get; set; }
 
     [JsonProperty("descriptions")]
-    public List<Description> Descriptions { get; set; }
+    public List<Description>? Descriptions { get; set; }
 
     [JsonProperty("total_inventory_count")]
     public int TotalInventoryCount { get; set; }
