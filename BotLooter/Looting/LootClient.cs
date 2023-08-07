@@ -23,7 +23,7 @@ public class LootClient
         _steamWeb = steamWeb;
     }
 
-    public async Task<(int? LootedItemCount, string Message)> TryLoot(TradeOfferUrl tradeOfferUrl, List<string> inventories, bool ignoreNotMarketable)
+    public async Task<(int? LootedItemCount, string Message)> TryLoot(TradeOfferUrl tradeOfferUrl, Configuration configuration)
     {
         var (isSession, ensureSessionMessage) = await _steamSession.TryEnsureSession();
 
@@ -34,7 +34,7 @@ public class LootClient
         
         Log.Logger.Debug("{Login} : {SessionType}", Credentials.Login, ensureSessionMessage);
 
-        var (assets, getAssetsMessage) = await GetAssetsToSend(inventories, ignoreNotMarketable);
+        var (assets, getAssetsMessage) = await GetAssetsToSend(configuration);
 
         if (assets is null)
         {
@@ -87,7 +87,7 @@ public class LootClient
         return (tradeOffer.Me.Assets.Count, $"Залутан! Предметов: {tradeOffer.Me.Assets.Count}");
     }
 
-    private async Task<(List<Asset>? Assets, string message)> GetAssetsToSend(List<string> inventories, bool ignoreNotMarketable)
+    private async Task<(List<Asset>? Assets, string message)> GetAssetsToSend(Configuration configuration)
     {
         var filteredOut = new HashSet<string>();
         
@@ -95,7 +95,7 @@ public class LootClient
 
         var index = 0;
         
-        foreach (var inventory in inventories)
+        foreach (var inventory in configuration.Inventories)
         {
             var split = inventory.Split('/');
 
@@ -119,9 +119,17 @@ public class LootClient
                 filteredOut.Add(description.Classid);
             }
 
-            if (ignoreNotMarketable)
+            if (configuration.IgnoreNotMarketable)
             {
                 foreach (var description in inventoryData.Descriptions.Where(d => !d.Marketable))
+                {
+                    filteredOut.Add(description.Classid);
+                }
+            }
+
+            if (configuration.IgnoreMarketable)
+            {
+                foreach (var description in inventoryData.Descriptions.Where(d => d.Marketable))
                 {
                     filteredOut.Add(description.Classid);
                 }
@@ -131,7 +139,7 @@ public class LootClient
             
             assets.AddRange(notFilteredOutAssets);
 
-            var isLast = index == inventories.Count - 1;
+            var isLast = index == configuration.Inventories.Count - 1;
             
             if (!isLast)
             {

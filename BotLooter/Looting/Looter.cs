@@ -24,7 +24,7 @@ public class Looter
             MaxDegreeOfParallelism = config.LootThreadCount
         }, async (lootClient, _) =>
         {
-            var lootResult = await lootClient.TryLoot(tradeOfferUrl, config.Inventories, config.IgnoreNotMarketable);
+            var lootResult = await lootClient.TryLoot(tradeOfferUrl, config);
 
             Interlocked.Increment(ref counter);
             var progress = $"{counter}/{lootClients.Count}";

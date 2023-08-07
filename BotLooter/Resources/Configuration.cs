@@ -17,6 +17,7 @@ public class Configuration
     public int LootThreadCount { get; set; } = 1;
     public List<string> Inventories { get; set; } = new();
     public bool IgnoreNotMarketable { get; set; } = false;
+    public bool IgnoreMarketable { get; set; } = false;
 
     public static async Task<(Configuration? Config, string Message)> TryLoadFromFile()
     {
