@@ -131,7 +131,7 @@ public class SteamUserSession
                 return (false, "Не удалось получить веб-куки: (sessionid или steamLoginSecure не найдены)");
             }
 
-            AccessToken = loginSession.AccessToken;
+            AccessToken = loginSession.AccessToken ?? steamLoginSecure.Replace($"{steamId}%7C%7C", "");
             SteamId = steamId;
 
             Credentials.SteamGuardAccount.Session = new SessionData
