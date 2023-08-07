@@ -100,47 +100,25 @@ public class SteamUserSession
                 }
             }
 
-            _cookieContainer = new CookieContainer();
+            var getCookiesResult = await loginSession.GetWebCookies();
 
-            var webCookies = await loginSession.GetWebCookies(_cookieContainer);
-
-            if (!webCookies.Success)
+            if (getCookiesResult.Cookies is null)
             {
-                return (false, $"Не удалось получить веб-куки: {webCookies.Message}");
+                return (false, $"Не удалось получить веб-куки: {getCookiesResult.Message}");
             }
 
-            ulong? steamId = null;
-
-            if (Credentials.SteamId is not null)
-            {
-                steamId = ulong.Parse(Credentials.SteamId);
-            }
-
-            steamId ??= loginSession.SteamId;
-
-            if (steamId is null)
-            {
-                return (false, "Отсутсвует SteamId");
-            }
-
-            var sessionId = _cookieContainer.GetAllCookies().FirstOrDefault(c => c.Name == "sessionid")?.Value;
-            var steamLoginSecure = _cookieContainer.GetAllCookies().FirstOrDefault(c => c.Name == "steamLoginSecure")?.Value;
-
-            if (sessionId is null || steamLoginSecure is null)
-            {
-                return (false, "Не удалось получить веб-куки: (sessionid или steamLoginSecure не найдены)");
-            }
-
-            AccessToken = loginSession.AccessToken ?? steamLoginSecure.Replace($"{steamId}%7C%7C", "");
-            SteamId = steamId;
+            AccessToken = getCookiesResult.Cookies.AccessToken;
+            SteamId = ulong.Parse(getCookiesResult.Cookies.SteamId);
 
             Credentials.SteamGuardAccount.Session = new SessionData
             {
-                SessionID = sessionId,
-                SteamLoginSecure = steamLoginSecure,
-                SteamID = steamId.Value
+                SessionID = getCookiesResult.Cookies.SessionId,
+                SteamLoginSecure = getCookiesResult.Cookies.SteamLoginSecure,
+                SteamID = SteamId.Value
             };
 
+            _cookieContainer = CreateCookieContainerWithSession(getCookiesResult.Cookies);
+            
             return (true, "Авторизовался");
         }
         catch
@@ -152,6 +130,26 @@ public class SteamUserSession
         }
     }
 
+    private CookieContainer CreateCookieContainerWithSession(SteamWebCookies steamCookies)
+    {
+        const string sessionDomain = "steamcommunity.com";
+        const string storeSessionDomain = "store.steampowered.com";
+        const string helpSessionDomain = "help.steampowered.com";
+
+        var cookieContainer = new CookieContainer();
+        
+        cookieContainer.Add(new Cookie("sessionid", steamCookies.SessionId, "/", sessionDomain));
+        cookieContainer.Add(new Cookie("steamLoginSecure", steamCookies.SteamLoginSecure, "/", sessionDomain));
+
+        cookieContainer.Add(new Cookie("sessionid", steamCookies.SessionId, "/", storeSessionDomain));
+        cookieContainer.Add(new Cookie("steamLoginSecure", steamCookies.SteamLoginSecure, "/", storeSessionDomain));
+
+        cookieContainer.Add(new Cookie("sessionid", steamCookies.SessionId, "/", helpSessionDomain));
+        cookieContainer.Add(new Cookie("steamLoginSecure", steamCookies.SteamLoginSecure, "/", helpSessionDomain));
+        
+        return cookieContainer;
+    }
+    
     public async ValueTask<bool> AcceptConfirmation(ulong id)
     {
         return await _acceptConfirmationPolicy.ExecuteAsync(async () =>
