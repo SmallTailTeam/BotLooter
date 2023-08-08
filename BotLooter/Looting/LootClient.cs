@@ -135,6 +135,24 @@ public class LootClient
                 }
             }
 
+            if (configuration.LootOnlyItemsWithNames.Count > 0)
+            {
+                // filter by market hash name because original name can be changed
+                foreach (var description in inventoryData.Descriptions.Where(d => !configuration.LootOnlyItemsWithNames.Contains(d.MarketHashName)))
+                {
+                    filteredOut.Add(description.Classid);
+                }
+            }
+
+            if (configuration.IgnoreItemsWithNames.Count > 0)
+            {
+                // filter by market hash name because original name can be changed
+                foreach (var description in inventoryData.Descriptions.Where(d => configuration.IgnoreItemsWithNames.Contains(d.MarketHashName)))
+                {
+                    filteredOut.Add(description.Classid);
+                }
+            }
+
             var notFilteredOutAssets = inventoryData.Assets.Where(a => !filteredOut.Contains(a.Classid));
             
             assets.AddRange(notFilteredOutAssets);
