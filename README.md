@@ -31,11 +31,20 @@ BotLooter.Config.json
   "LootThreadCount": 1,
   
   "Inventories": [
-    "730/2"
+    "440/2"
   ],
   
   "IgnoreNotMarketable": false,
-  "IgnoreMarketable": false
+  "IgnoreMarketable": false,
+
+  "LootOnlyItemsWithNames": [
+    "Mann Co. Supply Crate Key",
+    "Tour of Duty Ticket",
+  ],
+
+  "IgnoreItemsWithNames": [
+    "The Frying Pan"
+  ]
 }
 ```
 
