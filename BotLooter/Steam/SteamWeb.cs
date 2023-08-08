@@ -27,7 +27,7 @@ public class SteamWeb
         
         do
         {
-            var inventoryResponse = await GetInventoryItemsWithDescriptions(appId, contextId, 10000, true, startAssetId);
+            var inventoryResponse = await GetInventoryItemsWithDescriptions(appId, contextId, 5000, true, startAssetId);
 
             if (inventoryResponse is null)
             {
@@ -52,11 +52,6 @@ public class SteamWeb
                 }
             }
 
-            if (startAssetId is not null)
-            {
-                await Task.Delay(TimeSpan.FromSeconds(2));
-            }
-
         } while (startAssetId is not null);
 
         return (descriptions, assets);
@@ -65,7 +60,7 @@ public class SteamWeb
     public async Task<GetInventoryItemsWithDescriptionsResponse?> GetInventoryItemsWithDescriptions(
         string appId, 
         string contextId,
-        int count = 10000,
+        int count = 5000,
         bool getDescriptions = true,
         string? startAssetId = null)
     {
