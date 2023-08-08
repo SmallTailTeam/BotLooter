@@ -167,7 +167,7 @@ public class LootClient
         {
             sendTradeOfferResponse = await _steamWeb.SendTradeOffer(tradeOfferUrl, tradeOffer);
 
-            if (sendTradeOfferResponse.StatusCode != HttpStatusCode.OK) {
+            if (sendTradeOfferResponse.StatusCode == HttpStatusCode.InternalServerError) {
                 return false;
             }
 
