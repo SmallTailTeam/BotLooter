@@ -23,7 +23,7 @@ BotLooter.Config.json
   "ProxiesFilePath": "proxies.txt",
   
   "DelayBetweenAccountsSeconds": 30,
-  "DelayInventoryEmptySeconds": 10,
+  "DelayInventoryEmptySeconds": 0,
   
   "AskForApproval": true,
   "ExitOnFinish": false,

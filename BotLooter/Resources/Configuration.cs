@@ -11,7 +11,7 @@ public class Configuration
     public string SteamSessionsDirectoryPath { get; set; } = "";
     public string ProxiesFilePath { get; set; } = "proxies.txt";
     public int DelayBetweenAccountsSeconds { get; set; } = 30;
-    public int DelayInventoryEmptySeconds { get; set; } = 10;
+    public int DelayInventoryEmptySeconds { get; set; } = 0;
     public bool AskForApproval { get; set; } = true;
     public bool ExitOnFinish { get; set; } = false;
     public int LootThreadCount { get; set; } = 1;
