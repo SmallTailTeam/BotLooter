@@ -17,7 +17,7 @@ public class LootClient
     private readonly SteamUserSession _steamSession;
     private readonly SteamWeb _steamWeb;
 
-    private readonly AsyncRetryPolicy<bool> _sendTradeOfferPolicy;
+    private readonly AsyncRetryPolicy<RestResponse<SendTradeOfferResponse>> _sendTradeOfferPolicy;
 
     public LootClient(SteamAccountCredentials credentials, SteamUserSession steamSession, SteamWeb steamWeb)
     {
@@ -26,7 +26,7 @@ public class LootClient
         _steamWeb = steamWeb;
 
         _sendTradeOfferPolicy = Policy
-            .HandleResult<bool>(x => x is false)
+            .HandleResult<RestResponse<SendTradeOfferResponse>>(res => res.StatusCode == HttpStatusCode.InternalServerError)
             .WaitAndRetryAsync(3, _ => TimeSpan.FromSeconds(10));
     }
 
@@ -179,18 +179,7 @@ public class LootClient
 
     private async Task<(ulong? TradeOfferId, string Message)> SendTradeOffer(TradeOfferUrl tradeOfferUrl, JsonTradeOffer tradeOffer)
     {
-        var sendTradeOfferResponse = new RestResponse() as RestResponse<SendTradeOfferResponse>;
-        
-        await _sendTradeOfferPolicy.ExecuteAsync(async () =>
-        {
-            sendTradeOfferResponse = await _steamWeb.SendTradeOffer(tradeOfferUrl, tradeOffer);
-
-            if (sendTradeOfferResponse.StatusCode == HttpStatusCode.InternalServerError) {
-                return false;
-            }
-
-            return true;
-        });
+        var sendTradeOfferResponse = await _sendTradeOfferPolicy.ExecuteAsync(() => _steamWeb.SendTradeOffer(tradeOfferUrl, tradeOffer));
 
         if (sendTradeOfferResponse.Data is not { } sendTradeOfferData)
         {
