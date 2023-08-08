@@ -61,7 +61,6 @@ public class SteamUserSession
         request.AddHeader("Accept", "*/*");
         request.AddHeader("Accept-Encoding", "gzip, deflate, br");
         request.AddHeader("Accept-Language", "en-US,en;q=0.9");
-        request.AddHeader("Connection", "keep-alive");
 
         var response = await WebRequest(request);
         
