@@ -19,6 +19,9 @@ public class Configuration
     public bool IgnoreNotMarketable { get; set; } = false;
     public bool IgnoreMarketable { get; set; } = false;
 
+    public List<string> LootOnlyItemsWithNames { get; set; } = new();
+    public List<string> IgnoreItemsWithNames { get; set; } = new(); 
+
     public static async Task<(Configuration? Config, string Message)> TryLoadFromFile()
     {
         if (!File.Exists("BotLooter.Config.json"))
