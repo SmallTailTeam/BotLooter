@@ -1,4 +1,5 @@
-﻿using BotLooter.Resources;
+﻿using System.Net;
+using BotLooter.Resources;
 using BotLooter.Steam;
 using BotLooter.Steam.Contracts;
 using BotLooter.Steam.Contracts.Responses;
@@ -16,11 +17,17 @@ public class LootClient
     private readonly SteamUserSession _steamSession;
     private readonly SteamWeb _steamWeb;
 
+    private readonly AsyncRetryPolicy<bool> _sendTradeOfferPolicy;
+
     public LootClient(SteamAccountCredentials credentials, SteamUserSession steamSession, SteamWeb steamWeb)
     {
         Credentials = credentials;
         _steamSession = steamSession;
         _steamWeb = steamWeb;
+
+        _sendTradeOfferPolicy = Policy
+            .HandleResult<bool>(x => x is false)
+            .WaitAndRetryAsync(3, _ => TimeSpan.FromSeconds(10));
     }
 
     public async Task<(int? LootedItemCount, string Message)> TryLoot(TradeOfferUrl tradeOfferUrl, Configuration configuration)
@@ -154,7 +161,18 @@ public class LootClient
 
     private async Task<(ulong? TradeOfferId, string Message)> SendTradeOffer(TradeOfferUrl tradeOfferUrl, JsonTradeOffer tradeOffer)
     {
-        var sendTradeOfferResponse = await _steamWeb.SendTradeOffer(tradeOfferUrl, tradeOffer);
+        var sendTradeOfferResponse = new RestResponse() as RestResponse<SendTradeOfferResponse>;
+        
+        await _sendTradeOfferPolicy.ExecuteAsync(async () =>
+        {
+            sendTradeOfferResponse = await _steamWeb.SendTradeOffer(tradeOfferUrl, tradeOffer);
+
+            if (sendTradeOfferResponse.StatusCode != HttpStatusCode.OK) {
+                return false;
+            }
+
+            return true;
+        });
 
         if (sendTradeOfferResponse.Data is not { } sendTradeOfferData)
         {
