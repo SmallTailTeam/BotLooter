@@ -65,7 +65,7 @@ public class SteamUserSession
         request.AddHeader("Connection", "keep-alive");
         request.AddHeader("DNT", "1");
         request.AddHeader("Pragma", "no-cache");
-        request.AddHeader("sec-ch-ua", @"""Chromium"";v=""104"", "" Not A;Brand"";v=""99"", ""Google Chrome"";v=""104""");
+        request.AddHeader("sec-ch-ua", @"""Chromium"";v=""115"", "" Not A;Brand"";v=""99"", ""Google Chrome"";v=""115""");
         request.AddHeader("sec-ch-ua-mobile", "?0");
         request.AddHeader("sec-ch-ua-platform", @"""Windows""");
         request.AddHeader("Sec-Fetch-Dest", "empty");
