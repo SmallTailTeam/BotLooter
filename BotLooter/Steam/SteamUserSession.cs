@@ -60,18 +60,7 @@ public class SteamUserSession
 
         request.AddHeader("Accept", "*/*");
         request.AddHeader("Accept-Encoding", "gzip, deflate, br");
-        request.AddHeader("Accept-Language", "en-US,en;q=0.9,ru;q=0.8");
-        request.AddHeader("Cache-Control", "no-cache");
-        request.AddHeader("Connection", "keep-alive");
-        request.AddHeader("DNT", "1");
-        request.AddHeader("Pragma", "no-cache");
-        request.AddHeader("sec-ch-ua", @"""Chromium"";v=""104"", "" Not A;Brand"";v=""99"", ""Google Chrome"";v=""104""");
-        request.AddHeader("sec-ch-ua-mobile", "?0");
-        request.AddHeader("sec-ch-ua-platform", @"""Windows""");
-        request.AddHeader("Sec-Fetch-Dest", "empty");
-        request.AddHeader("Sec-Fetch-Mode", "cors");
-        request.AddHeader("Sec-Fetch-Site", "same-origin");
-        request.AddHeader("X-Requested-With", "XMLHttpRequest");
+        request.AddHeader("Accept-Language", "en-US,en;q=0.9");
 
         var response = await WebRequest(request);
         
