@@ -129,12 +129,15 @@ public class SteamUserSession
         
         cookieContainer.Add(new Cookie("sessionid", steamCookies.SessionId, "/", sessionDomain));
         cookieContainer.Add(new Cookie("steamLoginSecure", steamCookies.SteamLoginSecure, "/", sessionDomain));
+        cookieContainer.Add(new Cookie("Steam_Language", "english", "/", sessionDomain));
 
         cookieContainer.Add(new Cookie("sessionid", steamCookies.SessionId, "/", storeSessionDomain));
         cookieContainer.Add(new Cookie("steamLoginSecure", steamCookies.SteamLoginSecure, "/", storeSessionDomain));
+        cookieContainer.Add(new Cookie("Steam_Language", "english", "/", storeSessionDomain));
 
         cookieContainer.Add(new Cookie("sessionid", steamCookies.SessionId, "/", helpSessionDomain));
         cookieContainer.Add(new Cookie("steamLoginSecure", steamCookies.SteamLoginSecure, "/", helpSessionDomain));
+        cookieContainer.Add(new Cookie("Steam_Language", "english", "/", helpSessionDomain));
         
         return cookieContainer;
     }
