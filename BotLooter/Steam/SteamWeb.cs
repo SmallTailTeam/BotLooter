@@ -93,7 +93,7 @@ public class SteamWeb
         await _userSession.WebRequest(request);
         
         request = new RestRequest("https://steamcommunity.com/tradeoffer/new/send", Method.Post);
-        request.AddHeader("referer", $"https://steamcommunity.com/tradeoffer/new/?partner={tradeOfferUrl.Partner}");;
+        request.AddHeader("Referer", $"https://steamcommunity.com/tradeoffer/new/?partner={tradeOfferUrl.Partner}");;
         
         request.AddParameter("serverid", "1");
         request.AddParameter("partner", tradeOfferUrl.SteamId64);
@@ -112,12 +112,7 @@ public class SteamWeb
     public async Task<string> GetHelpWhyCantITradeTime()
     {
         var request = new RestRequest("https://help.steampowered.com/ru/wizard/HelpWhyCantITrade");
-        request.AddHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8");
-        request.AddHeader("Accept-Encoding", "gzip, deflate, br");
-        request.AddHeader("Accept-Language", "en-US;q=0.5");
-        request.AddHeader("Sec-Fetch-Dest", "document");
-        request.AddHeader("Sec-Fetch-Mode", "navigate");
-        request.AddHeader("Sec-Fetch-Site", "cross-site");
+        request.AddHeader("Accept", "*/*");
 
         var response = await _userSession.WebRequest(request);
 
