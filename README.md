@@ -20,6 +20,7 @@ BotLooter.Config.json
   "SecretsDirectoryPath": "",
   "AccountsFilePath": "",
   "SteamSessionsDirectoryPath": "",
+	
   "ProxiesFilePath": "proxies.txt",
   
   "DelayBetweenAccountsSeconds": 30,
