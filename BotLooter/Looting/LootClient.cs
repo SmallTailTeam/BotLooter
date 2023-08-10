@@ -26,7 +26,13 @@ public class LootClient
         _steamWeb = steamWeb;
 
         _sendTradeOfferPolicy = Policy
-            .HandleResult<RestResponse<SendTradeOfferResponse>>(res => res.StatusCode == HttpStatusCode.InternalServerError)
+            .HandleResult<RestResponse<SendTradeOfferResponse>>(res => {
+                if (res.StatusCode != HttpStatusCode.InternalServerError) {
+                    return false;
+                }
+
+                return res.Content?.ToLower().Contains("please try again later") ?? false;
+            })
             .WaitAndRetryAsync(3, _ => TimeSpan.FromSeconds(10));
     }
 
