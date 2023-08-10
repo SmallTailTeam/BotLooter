@@ -73,12 +73,13 @@ public class SteamUserSession
             {
                 Login = Credentials.Login,
                 Password = Credentials.Password,
-                SteamGuardCode = Credentials.SteamGuardAccount.GenerateSteamGuardCode(),
                 RefreshToken = Credentials.RefreshToken
             };
 
             if (loginSession.RefreshToken is null)
             {
+                loginSession.SteamGuardCode = Credentials.SteamGuardAccount.GenerateSteamGuardCode();
+                
                 var loginResult = await loginSession.LoginAsync();
 
                 if (!loginResult.Success)
