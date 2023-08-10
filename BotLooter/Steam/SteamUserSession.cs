@@ -57,10 +57,8 @@ public class SteamUserSession
         }
         
         var request = new RestRequest("https://store.steampowered.com/account", Method.Head);
-
         request.AddHeader("Accept", "*/*");
-        request.AddHeader("Accept-Encoding", "gzip, deflate, br");
-        request.AddHeader("Accept-Language", "en-US,en;q=0.9");
+
 
         var response = await WebRequest(request);
         
