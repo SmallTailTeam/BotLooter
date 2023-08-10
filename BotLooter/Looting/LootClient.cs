@@ -26,8 +26,10 @@ public class LootClient
         _steamWeb = steamWeb;
 
         _sendTradeOfferPolicy = Policy
-            .HandleResult<RestResponse<SendTradeOfferResponse>>(res => {
-                if (res.StatusCode != HttpStatusCode.InternalServerError) {
+            .HandleResult<RestResponse<SendTradeOfferResponse>>(res => 
+            {
+                if (res.StatusCode != HttpStatusCode.InternalServerError) 
+                {
                     return false;
                 }
 
