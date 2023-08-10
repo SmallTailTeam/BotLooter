@@ -1,4 +1,5 @@
-﻿using BotLooter.Resources;
+﻿using System.Collections.Concurrent;
+using BotLooter.Resources;
 using BotLooter.Steam.Contracts;
 using Serilog;
 
@@ -16,7 +17,9 @@ public class Looter
     public async Task Loot(List<LootClient> lootClients, TradeOfferUrl tradeOfferUrl, Configuration config)
     {
         _logger.Information("Начинаю лутать. Потоков: {ThreadCount}", config.LootThreadCount);
-    
+
+        var lootResults = new ConcurrentBag<LootResult>();
+        
         var counter = 0;
 
         await Parallel.ForEachAsync(lootClients, new ParallelOptions
@@ -25,23 +28,26 @@ public class Looter
         }, async (lootClient, _) =>
         {
             var lootResult = await lootClient.TryLoot(tradeOfferUrl, config);
+            
+            lootResults.Add(lootResult);
 
-            Interlocked.Increment(ref counter);
-            var progress = $"{counter}/{lootClients.Count}";
+            var progress = $"{Interlocked.Increment(ref counter)}/{lootClients.Count}";
             
             var identifier = $"{lootClient.Credentials.Login}";
             
             _logger.Information($"{progress} | {identifier} | {lootResult.Message}");
 
-            await WaitForNextLoot(lootResult.Message, config);
+            await WaitForNextLoot(lootResult, config);
         });
         
         _logger.Information("Лутание завершено");
+        
+        ShowResultsSummary(lootResults);
     }
 
-    private async Task WaitForNextLoot(string message, Configuration config)
+    private async Task WaitForNextLoot(LootResult lootResult, Configuration config)
     {
-        if (message == "Пустые инвентари")
+        if (lootResult.Message == "Пустые инвентари")
         {
             await Task.Delay(TimeSpan.FromSeconds(config.DelayInventoryEmptySeconds));
         }
@@ -49,5 +55,13 @@ public class Looter
         {
             await Task.Delay(TimeSpan.FromSeconds(config.DelayBetweenAccountsSeconds));
         }
+    }
+
+    private void ShowResultsSummary(IReadOnlyCollection<LootResult> lootResults)
+    {
+        _logger.Information("Статистика");
+        _logger.Information($"Предметов залутано: {lootResults.Sum(r => r.LootedItemCount)}");
+        _logger.Information($"Успешных обменов: {lootResults.Count(r => r.Success)}");
+        _logger.Information($"Неуспешных обменов: {lootResults.Count(r => !r.Success)}");
     }
 }

@@ -38,13 +38,13 @@ public class LootClient
             .WaitAndRetryAsync(3, _ => TimeSpan.FromSeconds(10));
     }
 
-    public async Task<(int? LootedItemCount, string Message)> TryLoot(TradeOfferUrl tradeOfferUrl, Configuration configuration)
+    public async Task<LootResult> TryLoot(TradeOfferUrl tradeOfferUrl, Configuration configuration)
     {
         var (isSession, ensureSessionMessage) = await _steamSession.TryEnsureSession();
 
         if (!isSession)
         {
-            return (null, ensureSessionMessage);
+            return new LootResult(false, ensureSessionMessage);
         }
         
         Log.Logger.Debug("{Login} : {SessionType}", Credentials.Login, ensureSessionMessage);
@@ -53,12 +53,12 @@ public class LootClient
 
         if (assets is null)
         {
-            return (null, getAssetsMessage);
+            return new LootResult(false, getAssetsMessage);
         }
 
         if (assets.Count < 1)
         {
-            return (null, "Пустые инвентари");
+            return new LootResult(false, "Пустые инвентари");
         }
 
         var tradeOffer = new JsonTradeOffer
@@ -89,17 +89,17 @@ public class LootClient
 
         if (tradeOfferId is null)
         {
-            return (null, sendTradeOfferMessage);
+            return new LootResult(false, sendTradeOfferMessage);
         }
 
         var confirmationResult = await _steamSession.AcceptConfirmation(tradeOfferId.Value);
 
         if (!confirmationResult)
         {
-            return (null, "Не смог подтвердить обмен");
+            return new LootResult(false, "Не смог подтвердить обмен");
         }
 
-        return (tradeOffer.Me.Assets.Count, $"Залутан! Предметов: {tradeOffer.Me.Assets.Count}");
+        return new LootResult(true, $"Залутан! Предметов: {tradeOffer.Me.Assets.Count}", tradeOffer.Me.Assets.Count);
     }
 
     private async Task<(List<Asset>? Assets, string message)> GetAssetsToSend(Configuration configuration)
