@@ -15,31 +15,30 @@ BotLooter.Config.json
 
 ```json
 {
-  "LootTradeOfferUrl": "",
-  
-  "SecretsDirectoryPath": "",
-  "AccountsFilePath": "",
-  "SteamSessionsDirectoryPath": "",
-  "IgnoreAccountsFilePath": "",
-	
+  "LootThreadCount": 1,
   "ProxiesFilePath": "proxies.txt",
-  
+
+  "AskForApproval": true,
+  "ExitOnFinish": false,
+
+  "LootTradeOfferUrl": "",
+
+  "AccountsFilePath": "",
+  "IgnoreAccountsFilePath": "",
+  "SecretsDirectoryPath": "",
+  "SteamSessionsDirectoryPath": "",
+
   "SuccessfulLootsExportFilePath": "",
   
   "DelayBetweenAccountsSeconds": 30,
   "DelayInventoryEmptySeconds": 10,
   
-  "AskForApproval": true,
-  "ExitOnFinish": false,
-  
-  "LootThreadCount": 1,
-  
   "Inventories": [
     "440/2"
   ],
   
-  "IgnoreNotMarketable": false,
   "IgnoreMarketable": false,
+  "IgnoreNotMarketable": false,
 
   "LootOnlyItemsWithNames": [
     "Mann Co. Supply Crate Key",
@@ -84,6 +83,7 @@ Cсылка на трейд оффер, на который будут отпр�
 ### `"IgnoreAccountsFilePath"`
 Путь к папке с логинами, которые будут игнорироваться при загрузке аккаунтов.
 - При значении `""` файл не используется
+- Если указать одинаковое значение для этого параметра и `"SuccessfulLootsExportFilePath"` - это поможет избежать повторного лутания одних и тех же аккаунтов.
 
 ---
 
