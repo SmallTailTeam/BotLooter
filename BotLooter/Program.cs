@@ -55,6 +55,13 @@ FlowUtils.WaitForApproval("Всего аккаунтов для лута: {Count
 var lootClients = CreateLootClients();
 
 var looter = new Looter(Log.Logger);
+
+if (!string.IsNullOrWhiteSpace(config.SuccessfulLootsExportFilePath))
+{
+    var lootResultExporter = new LootResultExporter(config.SuccessfulLootsExportFilePath);
+    looter.OnLooted += lootResultExporter.ExportResult;
+}
+
 await looter.Loot(lootClients, config.LootTradeOfferUrl, config);
     
 FlowUtils.WaitForExit();

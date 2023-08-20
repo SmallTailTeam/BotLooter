@@ -7,6 +7,8 @@ namespace BotLooter.Looting;
 
 public class Looter
 {
+    public event Func<string, LootResult, Task>? OnLooted;
+    
     private readonly ILogger _logger;
 
     public Looter(ILogger logger)
@@ -30,6 +32,8 @@ public class Looter
             var lootResult = await lootClient.TryLoot(tradeOfferUrl, config);
             
             lootResults.Add(lootResult);
+            
+            OnLooted?.Invoke(lootClient.Credentials.Login, lootResult);
 
             var progress = $"{Interlocked.Increment(ref counter)}/{lootClients.Count}";
             

@@ -10,6 +10,7 @@ public class Configuration
     public string AccountsFilePath { get; set; } = "";
     public string SteamSessionsDirectoryPath { get; set; } = "";
     public string ProxiesFilePath { get; set; } = "proxies.txt";
+    public string SuccessfulLootsExportFilePath { get; set; } = "";
     public int DelayBetweenAccountsSeconds { get; set; } = 30;
     public int DelayInventoryEmptySeconds { get; set; } = 10;
     public bool AskForApproval { get; set; } = true;
