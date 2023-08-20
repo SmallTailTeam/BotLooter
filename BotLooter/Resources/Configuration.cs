@@ -10,6 +10,7 @@ public class Configuration
     public string SecretsDirectoryPath { get; set; } = "";
     public string AccountsFilePath { get; set; } = "";
     public string SteamSessionsDirectoryPath { get; set; } = "";
+    public string IgnoreAccountsFilePath { get; set; } = "";
     
     public string ProxiesFilePath { get; set; } = "proxies.txt";
     

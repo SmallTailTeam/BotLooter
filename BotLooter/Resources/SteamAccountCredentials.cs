@@ -31,10 +31,40 @@ public class SteamAccountCredentials
         var loadedCountFromSteamSessions = await LoadFromSteamSessions(loadedAccounts, config.SteamSessionsDirectoryPath);
         var loadedCountFromSecrets = await LoadFromSecrets(loadedAccounts, config.AccountsFilePath, config.SecretsDirectoryPath);
 
+        loadedAccounts = await FilterLoadedAcccounts(config.IgnoreAccountsFilePath, loadedAccounts);
+        
         Log.Logger.Information("Стим-сессии: {Count}", loadedCountFromSteamSessions);
         Log.Logger.Information("Секреты: {Count}", loadedCountFromSecrets);
         
         return (loadedAccounts, "");
+    }
+
+    private static async Task<List<SteamAccountCredentials>> FilterLoadedAcccounts(string ignoreAccountsFilePath, List<SteamAccountCredentials> credentials)
+    {
+        var ignoredLogins = await LoadIgnoredLogins(ignoreAccountsFilePath);
+
+        if (ignoredLogins is null)
+        {
+            return credentials;
+        }
+        
+        return credentials
+            .Where(c => !ignoredLogins.Contains(c.Login))
+            .ToList();
+    }
+
+    private static async Task<HashSet<string>?> LoadIgnoredLogins(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return null;
+        }
+
+        var lines = await File.ReadAllLinesAsync(filePath);
+
+        return lines
+            .Where(l => !string.IsNullOrWhiteSpace(l))
+            .ToHashSet();
     }
 
     private static async Task<int> LoadFromSteamSessions(List<SteamAccountCredentials> loadedAccounts, string steamSessionsDirectoryPath)
