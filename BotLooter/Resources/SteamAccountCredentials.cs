@@ -31,7 +31,7 @@ public class SteamAccountCredentials
         var loadedCountFromSteamSessions = await LoadFromSteamSessions(loadedAccounts, config.SteamSessionsDirectoryPath);
         var loadedCountFromSecrets = await LoadFromSecrets(loadedAccounts, config.AccountsFilePath, config.SecretsDirectoryPath);
 
-        loadedAccounts = await FilterLoadedAcccounts(config.IgnoreAccountsFilePath, loadedAccounts);
+        loadedAccounts = await FilterLoadedAccounts(config.IgnoreAccountsFilePath, loadedAccounts);
         
         Log.Logger.Information("Стим-сессии: {Count}", loadedCountFromSteamSessions);
         Log.Logger.Information("Секреты: {Count}", loadedCountFromSecrets);
@@ -39,7 +39,7 @@ public class SteamAccountCredentials
         return (loadedAccounts, "");
     }
 
-    private static async Task<List<SteamAccountCredentials>> FilterLoadedAcccounts(string ignoreAccountsFilePath, List<SteamAccountCredentials> credentials)
+    private static async Task<List<SteamAccountCredentials>> FilterLoadedAccounts(string ignoreAccountsFilePath, List<SteamAccountCredentials> credentials)
     {
         var ignoredLogins = await LoadIgnoredLogins(ignoreAccountsFilePath);
 
