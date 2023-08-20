@@ -6,17 +6,24 @@ namespace BotLooter.Resources;
 public class Configuration
 {
     public string LootTradeOfferUrl { get; set; } = "";
+    
     public string SecretsDirectoryPath { get; set; } = "";
     public string AccountsFilePath { get; set; } = "";
     public string SteamSessionsDirectoryPath { get; set; } = "";
+    
     public string ProxiesFilePath { get; set; } = "proxies.txt";
+    
     public string SuccessfulLootsExportFilePath { get; set; } = "";
+    
     public int DelayBetweenAccountsSeconds { get; set; } = 30;
     public int DelayInventoryEmptySeconds { get; set; } = 10;
+    
     public bool AskForApproval { get; set; } = true;
     public bool ExitOnFinish { get; set; } = false;
+    
     public int LootThreadCount { get; set; } = 1;
     public List<string> Inventories { get; set; } = new();
+    
     public bool IgnoreNotMarketable { get; set; } = false;
     public bool IgnoreMarketable { get; set; } = false;
 
