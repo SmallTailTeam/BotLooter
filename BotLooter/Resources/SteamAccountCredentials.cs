@@ -60,6 +60,11 @@ public class SteamAccountCredentials
             return null;
         }
 
+        if (!File.Exists(filePath))
+        {
+            return null;
+        }
+
         var lines = await File.ReadAllLinesAsync(filePath);
 
         return lines
