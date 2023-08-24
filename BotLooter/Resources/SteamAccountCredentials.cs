@@ -62,6 +62,7 @@ public class SteamAccountCredentials
 
         if (!File.Exists(filePath))
         {
+            Log.Logger.Warning("Файл с игнорируемыми логинами '{Path}' не найден", filePath);
             return null;
         }
 
