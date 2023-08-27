@@ -93,7 +93,7 @@ public class SteamWeb
         request.AddParameter("steamid", _userSession.SteamId.Value);
         request.AddParameter("appid", appId);
         request.AddParameter("contextid", contextId);
-        request.AddParameter("count", "2000");
+        request.AddParameter("count", "5000");
         request.AddParameter("get_descriptions", "true");
         request.AddParameter("access_token", _userSession.AccessToken);
 
