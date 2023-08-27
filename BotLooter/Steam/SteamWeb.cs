@@ -3,6 +3,8 @@ using BotLooter.Steam.Contracts;
 using BotLooter.Steam.Contracts.Responses;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Polly;
+using Polly.Retry;
 using RestSharp;
 
 namespace BotLooter.Steam;
@@ -12,10 +14,24 @@ public class SteamWeb
     private readonly SteamUserSession _userSession;
     private readonly IHtmlParser _htmlParser;
 
+    private readonly AsyncRetryPolicy<GetInventoryItemsWithDescriptionsResponse?> _getInventoryItemsWithDescriptionsPolicy;
+
     public SteamWeb(SteamUserSession userSession)
     {
         _userSession = userSession;
         _htmlParser = new HtmlParser();
+
+        _getInventoryItemsWithDescriptionsPolicy = Policy
+            .HandleResult<GetInventoryItemsWithDescriptionsResponse?>(res =>
+            {
+                if (res is null || (res.Response.Assets is not null && res.Response.Descriptions is null))
+                {
+                    return true;
+                }
+
+                return false;
+            })
+            .WaitAndRetryAsync(3, _ => TimeSpan.FromSeconds(2));
     }
 
     public async Task<(HashSet<Description> Descriptions, HashSet<Asset> Assets)?> LoadInventory(string appId, string contextId)
@@ -27,9 +43,15 @@ public class SteamWeb
         
         do
         {
-            var inventoryResponse = await GetInventoryItemsWithDescriptions(appId, contextId, 5000, true, startAssetId);
+            var inventoryResponse = await _getInventoryItemsWithDescriptionsPolicy.ExecuteAsync(() => GetInventoryItemsWithDescriptions(appId, contextId, startAssetId));
 
             if (inventoryResponse is null)
+            {
+                return null;
+            }
+
+            // bad response
+            if (inventoryResponse.Response.Assets is not null && inventoryResponse.Response.Descriptions is null)
             {
                 return null;
             }
@@ -60,8 +82,6 @@ public class SteamWeb
     public async Task<GetInventoryItemsWithDescriptionsResponse?> GetInventoryItemsWithDescriptions(
         string appId, 
         string contextId,
-        int count = 5000,
-        bool getDescriptions = true,
         string? startAssetId = null)
     {
         if (_userSession.SteamId is null || _userSession.AccessToken is null)
@@ -73,8 +93,8 @@ public class SteamWeb
         request.AddParameter("steamid", _userSession.SteamId.Value);
         request.AddParameter("appid", appId);
         request.AddParameter("contextid", contextId);
-        request.AddParameter("count", count);
-        request.AddParameter("get_descriptions", getDescriptions);
+        request.AddParameter("count", "2000");
+        request.AddParameter("get_descriptions", "true");
         request.AddParameter("access_token", _userSession.AccessToken);
 
         if (startAssetId is not null)
