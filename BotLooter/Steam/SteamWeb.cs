@@ -1,8 +1,11 @@
-﻿using AngleSharp.Html.Parser;
+﻿using System.Net;
+using AngleSharp.Html.Parser;
 using BotLooter.Steam.Contracts;
 using BotLooter.Steam.Contracts.Responses;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Polly;
+using Polly.Retry;
 using RestSharp;
 
 namespace BotLooter.Steam;
@@ -12,10 +15,32 @@ public class SteamWeb
     private readonly SteamUserSession _userSession;
     private readonly IHtmlParser _htmlParser;
 
+    private readonly int MaxItemsPerInventoryRequest = 2000;
+
+    private readonly AsyncRetryPolicy<RestResponse<InventoryResponse?>> _getInventoryPolicy;
+
     public SteamWeb(SteamUserSession userSession)
     {
         _userSession = userSession;
         _htmlParser = new HtmlParser();
+
+        _getInventoryPolicy = Policy
+            .HandleResult<RestResponse<InventoryResponse?>>(res =>
+            {
+                if (res.StatusCode != HttpStatusCode.OK || res.Data is null || res.Data.Success != 1)
+                {
+                    return true;
+                }
+
+                // bad response
+                if (res.Data.Assets is not null && res.Data.Descriptions is null)
+                {
+                    return true;
+                }
+
+                return false;
+            })
+            .WaitAndRetryAsync(3, _ => TimeSpan.FromSeconds(4));
     }
 
     public async Task<(HashSet<Description> Descriptions, HashSet<Asset> Assets)?> LoadInventory(string appId, string contextId)
@@ -27,41 +52,39 @@ public class SteamWeb
         
         do
         {
-            var inventoryResponse = await GetInventoryItemsWithDescriptions(appId, contextId, 5000, true, startAssetId);
+            var inventoryResponse = await GetInventory(appId, contextId, startAssetId);
 
             if (inventoryResponse is null)
             {
                 return null;
             }
-
-            startAssetId = inventoryResponse.Response.LastAssetId;
-
-            if (inventoryResponse.Response.Descriptions is not null)
+            
+            if (inventoryResponse.Descriptions is not null)
             {
-                foreach (var description in inventoryResponse.Response.Descriptions)
+                foreach (var description in inventoryResponse.Descriptions)
                 {
                     descriptions.Add(description);
                 }
             }
 
-            if (inventoryResponse.Response.Assets is not null)
+            if (inventoryResponse.Assets is not null)
             {
-                foreach (var asset in inventoryResponse.Response.Assets)
+                foreach (var asset in inventoryResponse.Assets)
                 {
                     assets.Add(asset);
                 }
             }
 
+            startAssetId = inventoryResponse.LastAssetId;
+            
         } while (startAssetId is not null);
 
         return (descriptions, assets);
     }
     
-    public async Task<GetInventoryItemsWithDescriptionsResponse?> GetInventoryItemsWithDescriptions(
+    public async Task<InventoryResponse?> GetInventory(
         string appId, 
         string contextId,
-        int count = 5000,
-        bool getDescriptions = true,
         string? startAssetId = null)
     {
         if (_userSession.SteamId is null || _userSession.AccessToken is null)
@@ -69,20 +92,24 @@ public class SteamWeb
             return null;
         }
         
-        var request = new RestRequest("https://api.steampowered.com/IEconService/GetInventoryItemsWithDescriptions/v1/");
-        request.AddParameter("steamid", _userSession.SteamId.Value);
-        request.AddParameter("appid", appId);
-        request.AddParameter("contextid", contextId);
-        request.AddParameter("count", count);
-        request.AddParameter("get_descriptions", getDescriptions);
-        request.AddParameter("access_token", _userSession.AccessToken);
+        var request = new RestRequest($"https://steamcommunity.com/inventory/{_userSession.SteamId}/{appId}/{contextId}");
 
+        request.AddHeader("Referer", $"https://steamcommunity.com/profiles/{_userSession.SteamId}/inventory");
+
+        request.AddParameter("l", "english");
+        request.AddParameter("count", MaxItemsPerInventoryRequest);
         if (startAssetId is not null)
         {
             request.AddParameter("start_assetid", startAssetId);
         }
 
-        var response = await _userSession.WebRequest<GetInventoryItemsWithDescriptionsResponse>(request);
+        var response = await _getInventoryPolicy.ExecuteAsync(async () => await _userSession.WebRequest<InventoryResponse?>(request));
+
+        // bad response
+        if (response.Data is not null && response.Data.Assets is not null && response.Data.Descriptions is null)
+        {
+            return null;
+        }
         
         return response.Data;
     }
