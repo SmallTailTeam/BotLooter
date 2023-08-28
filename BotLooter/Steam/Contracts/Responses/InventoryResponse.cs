@@ -120,7 +120,7 @@ public class MarketAction
     public string Name { get; set; }
 }
 
-public class Response
+public class InventoryResponse
 {
     [JsonProperty("assets")]
     public List<Asset>? Assets { get; set; }
@@ -135,13 +135,10 @@ public class Response
     public string? LastAssetId { get; set; }
 
     [JsonProperty("more_items")]
-    public bool? MoreItems { get; set; }
-}
+    public int? MoreItems { get; set; }
 
-public class GetInventoryItemsWithDescriptionsResponse
-{
-    [JsonProperty("response")]
-    public Response Response { get; set; }
+    [JsonProperty("success")]
+    public int Success { get; set; }
 }
 
 public class Tag
