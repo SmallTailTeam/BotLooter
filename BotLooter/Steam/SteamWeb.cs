@@ -139,7 +139,6 @@ public class SteamWeb
     public async Task<string> GetHelpWhyCantITradeTime()
     {
         var request = new RestRequest("https://help.steampowered.com/ru/wizard/HelpWhyCantITrade");
-        request.AddHeader("Accept", "*/*");
 
         var response = await _userSession.WebRequest(request);
 

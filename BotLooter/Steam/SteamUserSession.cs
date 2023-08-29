@@ -59,8 +59,6 @@ public class SteamUserSession
         }
         
         var request = new RestRequest("https://store.steampowered.com/account", Method.Head);
-        request.AddHeader("Accept", "*/*");
-
 
         var response = await WebRequest(request);
         
