@@ -15,17 +15,15 @@ public class SteamUserSession
     public ulong? SteamId { get; private set; }
     
     private readonly RestClient _restClient;
-    private readonly Configuration _configuration;
 
     private CookieContainer? _cookieContainer;
 
     private readonly AsyncRetryPolicy<bool> _acceptConfirmationPolicy;
 
-    public SteamUserSession(SteamAccountCredentials credentials, RestClient restClient, Configuration configuration)
+    public SteamUserSession(SteamAccountCredentials credentials, RestClient restClient)
     {
         Credentials = credentials;
         _restClient = restClient;
-        _configuration = configuration;
 
         if (restClient.Options.Proxy is { } proxy)
         {
@@ -88,7 +86,7 @@ public class SteamUserSession
                 }
             }
 
-            var getCookiesResult = await loginSession.GetWebCookies(_configuration.IgnoredTransfers);
+            var getCookiesResult = await loginSession.GetWebCookies();
 
             if (getCookiesResult.Cookies is null)
             {
