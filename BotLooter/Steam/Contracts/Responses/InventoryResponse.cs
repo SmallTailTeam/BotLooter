@@ -138,7 +138,10 @@ public class InventoryResponse
     public int? MoreItems { get; set; }
 
     [JsonProperty("success")]
-    public int Success { get; set; }
+    public int? Success { get; set; }
+
+    [JsonProperty("error")]
+    public string? Error { get; set; }
 }
 
 public class Tag
