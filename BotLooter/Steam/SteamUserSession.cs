@@ -86,7 +86,7 @@ public class SteamUserSession
                 }
             }
 
-            var getCookiesResult = await loginSession.GetWebCookies();
+            var getCookiesResult = await loginSession.GetWebCookies(null);
 
             if (getCookiesResult.Cookies is null)
             {
