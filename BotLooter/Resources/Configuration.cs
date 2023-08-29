@@ -11,8 +11,6 @@ public class Configuration
     public string AccountsFilePath { get; set; } = "";
     public string SteamSessionsDirectoryPath { get; set; } = "";
     public string IgnoreAccountsFilePath { get; set; } = "";
-
-    public List<string>? IgnoredTransfers { get; set; } = new() { "https://steam.tv/login/settoken", "https://checkout.steampowered.com/login/settoken" };
     
     public string ProxiesFilePath { get; set; } = "proxies.txt";
     
