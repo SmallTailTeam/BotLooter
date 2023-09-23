@@ -152,8 +152,7 @@ public class LootClient
 
             if (configuration.LootOnlyItemsWithNames.Count > 0)
             {
-                // filter by market hash name because original name can be changed
-                foreach (var description in inventoryData.Descriptions.Where(d => !configuration.LootOnlyItemsWithNames.Contains(d.MarketHashName)))
+                foreach (var description in inventoryData.Descriptions.Where(d => !configuration.LootOnlyItemsWithNames.Contains(d.MarketName)))
                 {
                     filteredOut.Add(description.Classid);
                 }
@@ -161,8 +160,7 @@ public class LootClient
 
             if (configuration.IgnoreItemsWithNames.Count > 0)
             {
-                // filter by market hash name because original name can be changed
-                foreach (var description in inventoryData.Descriptions.Where(d => configuration.IgnoreItemsWithNames.Contains(d.MarketHashName)))
+                foreach (var description in inventoryData.Descriptions.Where(d => configuration.IgnoreItemsWithNames.Contains(d.MarketName)))
                 {
                     filteredOut.Add(description.Classid);
                 }
