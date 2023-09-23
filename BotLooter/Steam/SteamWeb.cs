@@ -33,7 +33,7 @@ public class SteamWeb
                 }
 
                 // bad response
-                if (res.Data.Assets is not null && res.Data.Descriptions is null)
+                if (res.Data.TotalInventoryCount != 0 && res.Data.Assets is not null && res.Data.Descriptions is null)
                 {
                     return true;
                 }
