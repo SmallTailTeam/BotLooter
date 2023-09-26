@@ -105,8 +105,13 @@ public class SteamWeb
 
         var response = await _getInventoryPolicy.ExecuteAsync(async () => await _userSession.WebRequest<InventoryResponse?>(request));
 
+        if (response.StatusCode != HttpStatusCode.OK || response.Data is null || response.Data.Success != 1)
+        {
+            return null;
+        }
+
         // bad response
-        if (response.Data is not null && response.Data.Assets is not null && response.Data.Descriptions is null)
+        if (response.Data.Assets is not null && response.Data.Descriptions is null)
         {
             return null;
         }
