@@ -33,7 +33,7 @@ public class SteamWeb
                 }
 
                 // bad response
-                if (res.Data.TotalInventoryCount != 0 && res.Data.Assets is not null && res.Data.Descriptions is null)
+                if (res.Data.TotalInventoryCount is null || res.Data.TotalInventoryCount > 0 && (res.Data.Assets is null || res.Data.Descriptions is null))
                 {
                     return true;
                 }
@@ -111,7 +111,7 @@ public class SteamWeb
         }
 
         // bad response
-        if (response.Data.Assets is not null && response.Data.Descriptions is null)
+        if (response.Data.TotalInventoryCount is null || response.Data.TotalInventoryCount > 0 && (response.Data.Assets is null || response.Data.Descriptions is null))
         {
             return null;
         }
