@@ -35,7 +35,7 @@ public class LootClient
 
                 return res.Content?.ToLower().Contains("please try again later") ?? false;
             })
-            .WaitAndRetryAsync(3, _ => TimeSpan.FromSeconds(10));
+            .WaitAndRetryAsync(2, _ => TimeSpan.FromSeconds(10));
     }
 
     public async Task<LootResult> TryLoot(TradeOfferUrl tradeOfferUrl, Configuration configuration)
