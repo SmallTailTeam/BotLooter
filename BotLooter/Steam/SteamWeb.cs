@@ -33,7 +33,7 @@ public class SteamWeb
                 }
 
                 // bad response
-                if (res.Data.TotalInventoryCount != 0 && res.Data.Assets is not null && res.Data.Descriptions is null)
+                if (res.Data.TotalInventoryCount is null || res.Data.TotalInventoryCount > 0 && (res.Data.Assets is null || res.Data.Descriptions is null))
                 {
                     return true;
                 }
@@ -105,8 +105,13 @@ public class SteamWeb
 
         var response = await _getInventoryPolicy.ExecuteAsync(async () => await _userSession.WebRequest<InventoryResponse?>(request));
 
+        if (response.StatusCode != HttpStatusCode.OK || response.Data is null || response.Data.Success != 1)
+        {
+            return null;
+        }
+
         // bad response
-        if (response.Data is not null && response.Data.Assets is not null && response.Data.Descriptions is null)
+        if (response.Data.TotalInventoryCount is null || response.Data.TotalInventoryCount > 0 && (response.Data.Assets is null || response.Data.Descriptions is null))
         {
             return null;
         }

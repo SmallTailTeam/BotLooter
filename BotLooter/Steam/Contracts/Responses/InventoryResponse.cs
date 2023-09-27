@@ -129,7 +129,7 @@ public class InventoryResponse
     public List<Description>? Descriptions { get; set; }
 
     [JsonProperty("total_inventory_count")]
-    public int TotalInventoryCount { get; set; }
+    public int? TotalInventoryCount { get; set; }
 
     [JsonProperty("last_assetid")]
     public string? LastAssetId { get; set; }

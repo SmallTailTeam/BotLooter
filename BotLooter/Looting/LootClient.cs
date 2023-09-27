@@ -123,8 +123,8 @@ public class LootClient
             var contextId = split[1];
             
             var inventoryResponse = await _steamWeb.LoadInventory(inventoryId, contextId);
-            
-            if (inventoryResponse is not {} inventoryData)
+
+            if (inventoryResponse is null || inventoryResponse is not {} inventoryData)
             {
                 return (null, $"Не смог получить инвентарь {inventory}.");
             }
