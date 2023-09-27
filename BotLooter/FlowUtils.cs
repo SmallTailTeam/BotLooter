@@ -25,14 +25,9 @@ public static class FlowUtils
         {
             Log.Logger.Information("Нажмите любую клавишу для продолжения.");
             Console.ReadKey();
-            Console.CursorLeft = 0;
         }
-        else
-        {
-            Log.Logger.Information("Ожидаю 5 секунд до продолжения.");
-            Thread.Sleep(TimeSpan.FromSeconds(5));
-            Console.CursorLeft = 0;
-        }
+
+        Console.CursorLeft = 0;
     }
 
     public static void WaitForExit(string? message = null)
@@ -58,13 +53,8 @@ public static class FlowUtils
                 }
             }
 
-            Environment.Exit(0);
         }
-        else
-        {
-            Log.Logger.Information("Выхожу через 5 секунд.");
-            Thread.Sleep(TimeSpan.FromSeconds(5));
-            Environment.Exit(0);
-        }
+
+        Environment.Exit(0);
     }
 } 
