@@ -40,7 +40,7 @@ public class SteamWeb
 
                 return false;
             })
-            .WaitAndRetryAsync(3, _ => TimeSpan.FromSeconds(4));
+            .WaitAndRetryAsync(2, _ => TimeSpan.FromSeconds(4));
     }
 
     public async Task<(HashSet<Description> Descriptions, HashSet<Asset> Assets)?> LoadInventory(string appId, string contextId)
