@@ -25,7 +25,10 @@ var version = new Version(0, 3, 4, 0);
 var versionChecker = new VersionChecker(Log.Logger);
 await versionChecker.Check(version);
 
-var configLoadResult = await Configuration.TryLoadFromFile(commandLineOptions.ConfigFilePath);
+var configFilePath = commandLineOptions.ConfigFilePath;
+Log.Logger.Information("Используется конфигурационный файл: {ConfigFilePath}", configFilePath);
+
+var configLoadResult = await Configuration.TryLoadFromFile(configFilePath);
 if (configLoadResult.Config is not {} config)
 {
     FlowUtils.AbortWithError(configLoadResult.Message);
