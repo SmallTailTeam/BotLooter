@@ -16,10 +16,12 @@ public class CommandLineParser
 
     var configFileOption = new Option<string>(
       "--config-file-path",
-      getDefaultValue: () => "BotLooter.Config.json",
-      description: "Путь к конфигурационному файлу"
+      description: "Путь к конфигурационному файлу",
+      getDefaultValue: () => "BotLooter.Config.json"
     );
- 
+
+    configFileOption.AddAlias("-c");
+    
     rootCommand.AddOption(configFileOption);
 
     var parseResult = rootCommand.Parse(args);
