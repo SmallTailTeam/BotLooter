@@ -21,7 +21,7 @@ public class CommandLineParser
     );
 
     configFileOption.AddAlias("-c");
-    
+
     rootCommand.AddOption(configFileOption);
 
     var parseResult = rootCommand.Parse(args);
@@ -30,7 +30,12 @@ public class CommandLineParser
 
     if (parseResult.HasOption(configFileOption))
     {
-      commandLineOptions.ConfigFilePath  = parseResult.GetValueForOption(configFileOption) ?? "BotLooter.Config.json";
+      var optionValue = parseResult.GetValueForOption(configFileOption);
+      
+      if (optionValue is not null && optionValue.Length > 0)
+      {
+        commandLineOptions.ConfigFilePath = optionValue;
+      }
     }
 
     return commandLineOptions;
