@@ -25,7 +25,6 @@ var version = new Version(0, 3, 4, 0);
 var versionChecker = new VersionChecker(Log.Logger);
 await versionChecker.Check(version);
 
-Log.Logger.Information("Конфигурационный файл: {ConfigFilePath}", commandLineOptions.ConfigFilePath);
 
 var configLoadResult = await Configuration.TryLoadFromFile(commandLineOptions.ConfigFilePath);
 if (configLoadResult.Config is not {} config)
@@ -33,6 +32,7 @@ if (configLoadResult.Config is not {} config)
     FlowUtils.AbortWithError(configLoadResult.Message);
     return;
 }
+Log.Logger.Information("Конфигурационный файл: {ConfigFilePath}", commandLineOptions.ConfigFilePath);
 
 Log.Logger.Information("Инвентари для лута: {Inventories}", string.Join(", ", config.Inventories));
 
