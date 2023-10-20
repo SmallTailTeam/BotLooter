@@ -26,7 +26,7 @@ var versionChecker = new VersionChecker(Log.Logger);
 await versionChecker.Check(version);
 
 var configFilePath = commandLineOptions.ConfigFilePath;
-Log.Logger.Information("Используется конфигурационный файл: {ConfigFilePath}", configFilePath);
+Log.Logger.Information("Конфигурационный файл: {ConfigFilePath}", configFilePath);
 
 var configLoadResult = await Configuration.TryLoadFromFile(configFilePath);
 if (configLoadResult.Config is not {} config)
