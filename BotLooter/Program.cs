@@ -5,6 +5,8 @@ using BotLooter.Resources;
 using BotLooter.Steam;
 using Serilog;
 
+var commandLineOptions = CommandLineParser.Parse(args);
+
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(outputTemplate: "{Timestamp:HH:mm:ss} {Level:w3} : {Message:lj}{NewLine}{Exception}")
     .CreateLogger();
@@ -23,7 +25,9 @@ var version = new Version(0, 3, 4, 0);
 var versionChecker = new VersionChecker(Log.Logger);
 await versionChecker.Check(version);
 
-var configLoadResult = await Configuration.TryLoadFromFile();
+
+Log.Logger.Information("Конфигурационный файл: {ConfigFilePath}", commandLineOptions.ConfigFilePath);
+var configLoadResult = await Configuration.TryLoadFromFile(commandLineOptions.ConfigFilePath);
 if (configLoadResult.Config is not {} config)
 {
     FlowUtils.AbortWithError(configLoadResult.Message);

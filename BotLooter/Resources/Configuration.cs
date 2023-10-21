@@ -31,14 +31,16 @@ public class Configuration
     public List<string> LootOnlyItemsWithNames { get; set; } = new();
     public List<string> IgnoreItemsWithNames { get; set; } = new(); 
 
-    public static async Task<(Configuration? Config, string Message)> TryLoadFromFile()
+    public static async Task<(Configuration? Config, string Message)> TryLoadFromFile(string? filePath = null)
     {
-        if (!File.Exists("BotLooter.Config.json"))
+        filePath ??= "BotLooter.Config.json";
+
+        if (!File.Exists(filePath))
         {
-            return (null, "Файл 'BotLooter.Config.json' не найден");
+            return (null, $"Конфигурационный файл '{filePath}' не найден");
         }
 
-        var contents = await File.ReadAllTextAsync("BotLooter.Config.json");
+        var contents = await File.ReadAllTextAsync(filePath);
 
         Configuration config;
         
