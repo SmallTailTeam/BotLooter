@@ -11,7 +11,6 @@ namespace BotLooter.Steam;
 public class SteamUserSession
 {
     public SteamAccountCredentials Credentials { get; }
-    public string? AccessToken { get; private set; }
     public ulong? SteamId { get; private set; }
     
     private readonly RestClient _restClient;
@@ -25,7 +24,7 @@ public class SteamUserSession
         Credentials = credentials;
         _restClient = restClient;
 
-        if (restClient.Options.Proxy is { } proxy)
+        if (restClient.Options.Proxy is { } proxy)  
         {
             credentials.SteamGuardAccount.Proxy = proxy;
         }
@@ -37,8 +36,6 @@ public class SteamUserSession
 
     public async ValueTask<(bool IsSession, string Message)> TryEnsureSession()
     {
-        _cookieContainer ??= new CookieContainer();
-
         if (await IsSessionAlive())
         {
             return (true, "Сессия жива");
@@ -86,24 +83,28 @@ public class SteamUserSession
                 }
             }
 
-            var getCookiesResult = await loginSession.GetWebCookies(null);
+            _cookieContainer ??= new CookieContainer();
 
-            if (getCookiesResult.Cookies is null)
+            var getCookiesResult = await loginSession.GetWebCookies(_cookieContainer);
+
+            if (!getCookiesResult.Success)
             {
                 return (false, $"Не удалось получить веб-куки: {getCookiesResult.Message}");
             }
 
-            AccessToken = getCookiesResult.Cookies.AccessToken;
-            SteamId = ulong.Parse(getCookiesResult.Cookies.SteamId);
+            SteamId = ulong.Parse(getCookiesResult.SteamId ?? "0");
+
+            var cookies = _cookieContainer.GetAllCookies();
+
+            var sessionId = cookies.FirstOrDefault(c => c.Name == "sessionid")?.Value;
+            var steamLoginSecure = cookies.FirstOrDefault(c => c.Name == "steamLoginSecure")?.Value;
 
             Credentials.SteamGuardAccount.Session = new SessionData
             {
-                SessionID = getCookiesResult.Cookies.SessionId,
-                SteamLoginSecure = getCookiesResult.Cookies.SteamLoginSecure,
+                SessionID = sessionId,
+                SteamLoginSecure = steamLoginSecure,
                 SteamID = SteamId.Value
             };
-
-            _cookieContainer = CreateCookieContainerWithSession(getCookiesResult.Cookies);
             
             return (true, "Авторизовался");
         }
@@ -114,29 +115,6 @@ public class SteamUserSession
             return (false,
                 $"Не удалось авторизоваться, возможно проблема со Стимом или {(isUsingProxy ? "прокси" : "интернетом")}");
         }
-    }
-
-    private CookieContainer CreateCookieContainerWithSession(SteamWebCookies steamCookies)
-    {
-        const string sessionDomain = "steamcommunity.com";
-        const string storeSessionDomain = "store.steampowered.com";
-        const string helpSessionDomain = "help.steampowered.com";
-
-        var cookieContainer = new CookieContainer();
-        
-        cookieContainer.Add(new Cookie("sessionid", steamCookies.SessionId, "/", sessionDomain));
-        cookieContainer.Add(new Cookie("steamLoginSecure", steamCookies.SteamLoginSecure, "/", sessionDomain));
-        cookieContainer.Add(new Cookie("Steam_Language", "english", "/", sessionDomain));
-
-        cookieContainer.Add(new Cookie("sessionid", steamCookies.SessionId, "/", storeSessionDomain));
-        cookieContainer.Add(new Cookie("steamLoginSecure", steamCookies.SteamLoginSecure, "/", storeSessionDomain));
-        cookieContainer.Add(new Cookie("Steam_Language", "english", "/", storeSessionDomain));
-
-        cookieContainer.Add(new Cookie("sessionid", steamCookies.SessionId, "/", helpSessionDomain));
-        cookieContainer.Add(new Cookie("steamLoginSecure", steamCookies.SteamLoginSecure, "/", helpSessionDomain));
-        cookieContainer.Add(new Cookie("Steam_Language", "english", "/", helpSessionDomain));
-        
-        return cookieContainer;
     }
     
     public async ValueTask<bool> AcceptConfirmation(ulong id)

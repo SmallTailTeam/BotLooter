@@ -87,7 +87,7 @@ public class SteamWeb
         string contextId,
         string? startAssetId = null)
     {
-        if (_userSession.SteamId is null || _userSession.AccessToken is null)
+        if (_userSession.SteamId is null)
         {
             return null;
         }
