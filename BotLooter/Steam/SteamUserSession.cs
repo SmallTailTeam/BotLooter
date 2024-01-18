@@ -48,7 +48,7 @@ public class SteamUserSession
 
     private async ValueTask<bool> IsSessionAlive()
     {
-        if (_cookieContainer?.GetAllCookies().Any(c => c.Name == "steamLoginSecure") == false)
+        if (_cookieContainer is null)
         {
             return false;
         }
@@ -92,9 +92,9 @@ public class SteamUserSession
                 return (false, $"Не удалось получить веб-куки: {getCookiesResult.Message}");
             }
 
-            SteamId = ulong.Parse(getCookiesResult.SteamId ?? "0");
+            SteamId = ulong.Parse(getCookiesResult.SteamId!);
 
-            var cookies = _cookieContainer.GetAllCookies();
+            var cookies = _cookieContainer.GetCookies(new Uri("https://steamcommunity.com"));
 
             var sessionId = cookies.FirstOrDefault(c => c.Name == "sessionid")?.Value;
             var steamLoginSecure = cookies.FirstOrDefault(c => c.Name == "steamLoginSecure")?.Value;
