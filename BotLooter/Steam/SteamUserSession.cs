@@ -5,6 +5,7 @@ using Polly.Retry;
 using RestSharp;
 using SteamAuth;
 using SteamSession;
+using static BotLooter.Resources.SteamAccountCredentials;
 
 namespace BotLooter.Steam;
 
@@ -105,6 +106,11 @@ public class SteamUserSession
                 SteamLoginSecure = steamLoginSecure,
                 SteamID = SteamId.Value
             };
+
+            if (Credentials.SteamGuardAccount.DeviceID is null)
+            {
+                Credentials.SteamGuardAccount.DeviceID = GetDeviceId(SteamId.Value.ToString());
+            }
             
             return (true, "Авторизовался");
         }
