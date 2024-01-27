@@ -166,6 +166,38 @@ public class LootClient
                 }
             }
 
+            if (configuration.LootOnlyItemsWithAppids.Count > 0)
+            {
+                foreach (var description in inventoryData.Descriptions.Where(d => d.Appid == 753 && !configuration.LootOnlyItemsWithAppids.Contains(d.MarketFeeApp)))
+                {
+                    filteredOut.Add(description.Classid);
+                }
+            }
+
+            if (configuration.IgnoreItemsWithAppids.Count > 0)
+            {
+                foreach (var description in inventoryData.Descriptions.Where(d => d.Appid == 753 &&  configuration.IgnoreItemsWithAppids.Contains(d.MarketFeeApp)))
+                {
+                    filteredOut.Add(description.Classid);
+                }
+            }
+
+            if (configuration.LootOnlyItemsWithTags.Count > 0)
+            {
+                foreach (var description in inventoryData.Descriptions.Where(d => !d.Tags.Any(t => configuration.LootOnlyItemsWithTags.Contains(t.LocalizedTagName))))
+                {
+                    filteredOut.Add(description.Classid);
+                }
+            }
+
+            if (configuration.IgnoreItemsWithTags.Count > 0)
+            {
+                foreach (var description in inventoryData.Descriptions.Where(d => d.Tags.Any(t => configuration.IgnoreItemsWithTags.Contains(t.LocalizedTagName))))
+                {
+                    filteredOut.Add(description.Classid);
+                }
+            }
+
             var notFilteredOutAssets = inventoryData.Assets.Where(a => !filteredOut.Contains(a.Classid));
             
             assets.AddRange(notFilteredOutAssets);

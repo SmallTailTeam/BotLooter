@@ -84,6 +84,9 @@ public class Description
     [JsonProperty("market_hash_name")]
     public string MarketHashName { get; set; }
 
+    [JsonProperty("market_fee_app")]
+    public int MarketFeeApp { get; set; }
+
     [JsonProperty("market_actions")]
     public List<MarketAction> MarketActions { get; set; }
 
