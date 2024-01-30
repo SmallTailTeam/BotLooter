@@ -30,6 +30,11 @@ public class Configuration
 
     public List<string> LootOnlyItemsWithNames { get; set; } = new();
     public List<string> IgnoreItemsWithNames { get; set; } = new(); 
+    public List<int> LootOnlyItemsWithAppids { get; set; } = new();
+    public List<int> IgnoreItemsWithAppids { get; set; } = new();
+
+    public List<string> LootOnlyItemsWithTags { get; set; } = new();
+    public List<string> IgnoreItemsWithTags { get; set; } = new();
 
     public static async Task<(Configuration? Config, string Message)> TryLoadFromFile(string? filePath = null)
     {
