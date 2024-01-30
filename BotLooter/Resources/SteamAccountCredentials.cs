@@ -130,7 +130,7 @@ public class SteamAccountCredentials
         return loadedCount;
     }
     
-    private static string GetDeviceId(string steamId)
+    public static string GetDeviceId(string steamId)
     {
         var bytes = Encoding.UTF8.GetBytes(steamId);
         var hashBytes = SHA1.HashData(bytes);
@@ -218,9 +218,9 @@ public class SteamAccountCredentials
                     continue;
                 }
 
-                if (secret is not { SharedSecret: not null, IdentitySecret: not null, DeviceID: not null })
+                if (secret is not { SharedSecret: not null, IdentitySecret: not null })
                 {
-                    Log.Logger.Warning("В секретном файле отсутствует shared_secret, identity_secret или device_id: {Path}", filePath);
+                    Log.Logger.Warning("В секретном файле отсутствует shared_secret или identity_secret: {Path}", filePath);
                     continue;
                 }
 
