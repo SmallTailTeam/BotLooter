@@ -45,6 +45,8 @@ public class ProxyRestClientProvider : IRestClientProvider
         
         foreach (var line in lines)
         {
+            lineNumber++;
+            
             var proxy = TryParseProxy(line);
 
             if (proxy is null)
