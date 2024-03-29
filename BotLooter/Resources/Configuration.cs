@@ -26,6 +26,8 @@ public class Configuration
     public List<string> Inventories { get; set; } = new();
 
     public int MaxItemsPerTrade { get; set; } = 5000;
+
+    public int MaxItemsPerAllTrades { get; set; } = 100000;
     
     public bool IgnoreNotMarketable { get; set; } = false;
     public bool IgnoreMarketable { get; set; } = false;

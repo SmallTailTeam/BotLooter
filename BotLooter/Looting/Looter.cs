@@ -23,15 +23,24 @@ public class Looter
         var lootResults = new ConcurrentBag<LootResult>();
         
         var counter = 0;
+        
+        var summaryLootedItems = 0;
 
         await Parallel.ForEachAsync(lootClients, new ParallelOptions
         {
             MaxDegreeOfParallelism = config.LootThreadCount
         }, async (lootClient, _) =>
         {
+            if (summaryLootedItems >= config.MaxItemsPerAllTrades)
+            {
+                return;
+            }
+
             var lootResult = await lootClient.TryLoot(tradeOfferUrl, config);
             
             lootResults.Add(lootResult);
+
+            summaryLootedItems += lootResult.LootedItemCount;
             
             OnLooted?.Invoke(lootClient.Credentials.Login, lootResult);
 
