@@ -39,8 +39,8 @@ public class Looter
             var lootResult = await lootClient.TryLoot(tradeOfferUrl, config);
             
             lootResults.Add(lootResult);
-
-            summaryLootedItems += lootResult.LootedItemCount;
+            
+            Interlocked.Add(ref summaryLootedItems, lootResult.LootedItemCount);
             
             OnLooted?.Invoke(lootClient.Credentials.Login, lootResult);
 
