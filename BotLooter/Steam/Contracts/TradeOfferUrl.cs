@@ -15,8 +15,15 @@ public readonly partial struct TradeOfferUrl
     public TradeOfferUrl(string value)
     {
         Value = value;
-        
-        _match = TradeOfferUrlRegex().Match(Value);
+
+        try
+        {
+            _match = TradeOfferUrlRegex().Match(Value);
+        }
+        catch
+        {
+            _match = Match.Empty;
+        }
     }
 
     private string? ToToken()
