@@ -35,7 +35,7 @@ BotLooter.Config.json
 
  "Inventories": ["440/2", "753/6", "730/2"],
 
- "MaxItemsPerTrade": 5000,
+ "MaxItemsPerTrade": 8192,
  "MaxItemsPerAllTrades": 100000,
 
  "IgnoreMarketable": false,
