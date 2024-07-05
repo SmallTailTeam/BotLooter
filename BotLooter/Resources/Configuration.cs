@@ -96,9 +96,9 @@ public class Configuration
             """);
         }
 
-        if (config.MaxItemsPerTrade < 8192)
+        if (config.MaxItemsPerTrade > 8192)
         {
-            return (null, $"Параметр конфига 'MaxItemsPerTrade' не должен быть меньше 8192, текущее значение: {config.MaxItemsPerTrade}");
+            return (null, $"Параметр конфига 'MaxItemsPerTrade' не должен быть больше 8192, текущее значение: {config.MaxItemsPerTrade}");
         }
             
         return (config, "");
