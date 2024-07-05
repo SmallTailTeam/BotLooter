@@ -27,7 +27,7 @@ public class Configuration
 
     public int MaxItemsPerTrade { get; set; } = 8192;
 
-    public int MaxItemsPerAllTrades { get; set; } = Int32.MaxValue;
+    public int MaxItemsPerAllTrades { get; set; } = int.MaxValue;
     
     public bool IgnoreNotMarketable { get; set; } = false;
     public bool IgnoreMarketable { get; set; } = false;

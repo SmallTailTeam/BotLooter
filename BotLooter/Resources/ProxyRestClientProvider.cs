@@ -37,7 +37,11 @@ public class ProxyRestClientProvider : IRestClientProvider
         }
 
         var lines = await File.ReadAllLinesAsync(filePath);
-        lines = lines.Select(el => el.Trim()).Distinct().ToArray();
+        
+        lines = lines
+            .Select(el => el.Trim())
+            .Distinct()
+            .ToArray();
 
         var proxiedClients = new List<RestClient>();
 
