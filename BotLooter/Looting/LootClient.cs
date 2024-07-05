@@ -213,7 +213,7 @@ public class LootClient
         }
 
         assets = assets
-            .Take(Math.Min(configuration.MaxItemsPerTrade, 8192))
+            .Take(configuration.MaxItemsPerTrade)
             .ToList();
         
         return (assets, "");
