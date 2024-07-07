@@ -25,7 +25,6 @@ var version = new Version(0, 3, 8, 0);
 var versionChecker = new VersionChecker(Log.Logger);
 await versionChecker.Check(version);
 
-
 Log.Logger.Information("Конфигурационный файл: {ConfigFilePath}", commandLineOptions.ConfigFilePath);
 var configLoadResult = await Configuration.TryLoadFromFile(commandLineOptions.ConfigFilePath);
 if (configLoadResult.Config is not {} config)
@@ -66,7 +65,7 @@ if (!string.IsNullOrWhiteSpace(config.SuccessfulLootsExportFilePath))
     looter.OnLooted += lootResultExporter.ExportResult;
 }
 
-await looter.Loot(lootClients, config.LootTradeOfferUrl, config);
+await looter.Loot(lootClients, config);
     
 FlowUtils.WaitForExit();
 

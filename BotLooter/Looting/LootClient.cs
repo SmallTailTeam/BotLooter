@@ -38,7 +38,7 @@ public class LootClient
             .WaitAndRetryAsync(2, _ => TimeSpan.FromSeconds(10));
     }
 
-    public async Task<LootResult> TryLoot(TradeOfferUrl tradeOfferUrl, Configuration configuration)
+    public async Task<LootResult> TryLoot(TradeOfferUrl tradeOfferUrl, Configuration config)
     {
         var (isSession, ensureSessionMessage) = await _steamSession.TryEnsureSession();
 
@@ -49,7 +49,7 @@ public class LootClient
         
         Log.Logger.Debug("{Login} : {SessionType}", Credentials.Login, ensureSessionMessage);
 
-        var (assets, getAssetsMessage) = await GetAssetsToSend(configuration);
+        var (assets, getAssetsMessage) = await GetAssetsToSend(config);
 
         if (assets is null)
         {
@@ -102,7 +102,7 @@ public class LootClient
         return new LootResult(true, $"Залутан! Предметов: {tradeOffer.Me.Assets.Count}", tradeOffer.Me.Assets.Count);
     }
 
-    private async Task<(List<Asset>? Assets, string message)> GetAssetsToSend(Configuration configuration)
+    private async Task<(List<Asset>? Assets, string message)> GetAssetsToSend(Configuration config)
     {
         var filteredOut = new HashSet<string>();
         
@@ -110,7 +110,7 @@ public class LootClient
 
         var index = 0;
         
-        foreach (var inventory in configuration.Inventories)
+        foreach (var inventory in config.Inventories)
         {
             var split = inventory.Split('/');
 
@@ -134,7 +134,7 @@ public class LootClient
                 filteredOut.Add(description.Classid);
             }
 
-            if (configuration.IgnoreNotMarketable)
+            if (config.IgnoreNotMarketable)
             {
                 foreach (var description in inventoryData.Descriptions.Where(d => !d.Marketable))
                 {
@@ -142,7 +142,7 @@ public class LootClient
                 }
             }
 
-            if (configuration.IgnoreMarketable)
+            if (config.IgnoreMarketable)
             {
                 foreach (var description in inventoryData.Descriptions.Where(d => d.Marketable))
                 {
@@ -150,49 +150,49 @@ public class LootClient
                 }
             }
 
-            if (configuration.LootOnlyItemsWithNames.Count > 0)
+            if (config.LootOnlyItemsWithNames.Count > 0)
             {
-                foreach (var description in inventoryData.Descriptions.Where(d => !configuration.LootOnlyItemsWithNames.Contains(d.MarketName)))
+                foreach (var description in inventoryData.Descriptions.Where(d => !config.LootOnlyItemsWithNames.Contains(d.MarketName)))
                 {
                     filteredOut.Add(description.Classid);
                 }
             }
 
-            if (configuration.IgnoreItemsWithNames.Count > 0)
+            if (config.IgnoreItemsWithNames.Count > 0)
             {
-                foreach (var description in inventoryData.Descriptions.Where(d => configuration.IgnoreItemsWithNames.Contains(d.MarketName)))
+                foreach (var description in inventoryData.Descriptions.Where(d => config.IgnoreItemsWithNames.Contains(d.MarketName)))
                 {
                     filteredOut.Add(description.Classid);
                 }
             }
 
-            if (configuration.LootOnlyItemsWithAppids.Count > 0)
+            if (config.LootOnlyItemsWithAppids.Count > 0)
             {
-                foreach (var description in inventoryData.Descriptions.Where(d => d.Appid == 753 && !configuration.LootOnlyItemsWithAppids.Contains(d.MarketFeeApp)))
+                foreach (var description in inventoryData.Descriptions.Where(d => d.Appid == 753 && !config.LootOnlyItemsWithAppids.Contains(d.MarketFeeApp)))
                 {
                     filteredOut.Add(description.Classid);
                 }
             }
 
-            if (configuration.IgnoreItemsWithAppids.Count > 0)
+            if (config.IgnoreItemsWithAppids.Count > 0)
             {
-                foreach (var description in inventoryData.Descriptions.Where(d => d.Appid == 753 &&  configuration.IgnoreItemsWithAppids.Contains(d.MarketFeeApp)))
+                foreach (var description in inventoryData.Descriptions.Where(d => d.Appid == 753 &&  config.IgnoreItemsWithAppids.Contains(d.MarketFeeApp)))
                 {
                     filteredOut.Add(description.Classid);
                 }
             }
 
-            if (configuration.LootOnlyItemsWithTags.Count > 0)
+            if (config.LootOnlyItemsWithTags.Count > 0)
             {
-                foreach (var description in inventoryData.Descriptions.Where(d => !d.Tags.Any(t => configuration.LootOnlyItemsWithTags.Contains(t.LocalizedTagName))))
+                foreach (var description in inventoryData.Descriptions.Where(d => !d.Tags.Any(t => config.LootOnlyItemsWithTags.Contains(t.LocalizedTagName))))
                 {
                     filteredOut.Add(description.Classid);
                 }
             }
 
-            if (configuration.IgnoreItemsWithTags.Count > 0)
+            if (config.IgnoreItemsWithTags.Count > 0)
             {
-                foreach (var description in inventoryData.Descriptions.Where(d => d.Tags.Any(t => configuration.IgnoreItemsWithTags.Contains(t.LocalizedTagName))))
+                foreach (var description in inventoryData.Descriptions.Where(d => d.Tags.Any(t => config.IgnoreItemsWithTags.Contains(t.LocalizedTagName))))
                 {
                     filteredOut.Add(description.Classid);
                 }
@@ -202,7 +202,7 @@ public class LootClient
             
             assets.AddRange(notFilteredOutAssets);
 
-            var isLast = index == configuration.Inventories.Count - 1;
+            var isLast = index == config.Inventories.Count - 1;
             
             if (!isLast)
             {
@@ -213,7 +213,7 @@ public class LootClient
         }
 
         assets = assets
-            .Take(configuration.MaxItemsPerTrade)
+            .Take(config.MaxItemsPerTrade)
             .ToList();
         
         return (assets, "");

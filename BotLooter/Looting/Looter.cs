@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using BotLooter.Resources;
-using BotLooter.Steam.Contracts;
 using Serilog;
 
 namespace BotLooter.Looting;
@@ -16,7 +15,7 @@ public class Looter
         _logger = logger;
     }
 
-    public async Task Loot(List<LootClient> lootClients, TradeOfferUrl tradeOfferUrl, Configuration config)
+    public async Task Loot(List<LootClient> lootClients, Configuration config)
     {
         _logger.Information("Начинаю лутать. Потоков: {ThreadCount}", config.LootThreadCount);
 
@@ -26,32 +25,35 @@ public class Looter
         
         var summaryLootedItems = 0;
 
-        await Parallel.ForEachAsync(lootClients, new ParallelOptions
-        {
-            MaxDegreeOfParallelism = config.LootThreadCount
-        }, async (lootClient, _) =>
-        {
-            if (summaryLootedItems >= config.MaxItemsPerAllTrades)
+        await Parallel.ForEachAsync(
+            lootClients,
+            new ParallelOptions 
             {
-                return;
-            }
+                MaxDegreeOfParallelism = config.LootThreadCount 
+            },
+            async (lootClient, _) =>
+            {
+                if (summaryLootedItems >= config.MaxItemsPerAllTrades)
+                {
+                    return;
+                }
 
-            var lootResult = await lootClient.TryLoot(tradeOfferUrl, config);
-            
-            lootResults.Add(lootResult);
+                var lootResult = await lootClient.TryLoot(config.LootTradeOfferUrl, config);
 
-            Interlocked.Add(ref summaryLootedItems, lootResult.LootedItemCount);
-            
-            OnLooted?.Invoke(lootClient.Credentials.Login, lootResult);
+                lootResults.Add(lootResult);
 
-            var progress = $"{Interlocked.Increment(ref counter)}/{lootClients.Count}";
-            
-            var identifier = $"{lootClient.Credentials.Login}";
-            
-            _logger.Information($"{progress} | {identifier} | {lootResult.Message}");
+                Interlocked.Add(ref summaryLootedItems, lootResult.LootedItemCount);
 
-            await WaitForNextLoot(lootResult, config);
-        });
+                OnLooted?.Invoke(lootClient.Credentials.Login, lootResult);
+
+                var progress = $"{Interlocked.Increment(ref counter)}/{lootClients.Count}";
+
+                var identifier = $"{lootClient.Credentials.Login}";
+
+                _logger.Information($"{progress} | {identifier} | {lootResult.Message}");
+
+                await WaitForNextLoot(lootResult, config);
+            });
         
         _logger.Information("Лутание завершено");
         
