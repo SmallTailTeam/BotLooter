@@ -32,7 +32,7 @@ public class SteamUserSession
 
         _acceptConfirmationPolicy = Policy
             .HandleResult<bool>(x => x is false)
-            .WaitAndRetryAsync(5, _ => TimeSpan.FromSeconds(5));
+            .WaitAndRetryAsync(5, _ => TimeSpan.FromSeconds(10));
     }
 
     public async ValueTask<(bool IsSession, string Message)> TryEnsureSession()
