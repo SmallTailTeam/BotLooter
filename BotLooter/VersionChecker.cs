@@ -6,7 +6,6 @@ namespace BotLooter;
 public class VersionChecker
 {
     private readonly ILogger _logger;
-
     private readonly IGitHubClient _gitHubClient;
 
     public VersionChecker(ILogger logger)
@@ -19,7 +18,6 @@ public class VersionChecker
     public async Task Check(Version currentVersion)
     {
         Release? latestRelease = null;
-
         try
         {
             latestRelease = await _gitHubClient.Repository.Release.GetLatest(635245709);
@@ -31,8 +29,8 @@ public class VersionChecker
 
         if (latestRelease is null)
         {
-            _logger.Warning("Не удалось получить последнюю версию BotLooter.");
-            _logger.Information("Ваша версия {Version} Проверить последнюю версию можно здесь https://github.com/SmallTailTeam/BotLooter", currentVersion);
+            _logger.Warning("Failed to retrieve the latest version of BotLooter.");
+            _logger.Information("Your version is {Version}. You can check the latest version here: https://github.com/SmallTailTeam/BotLooter", currentVersion);
             return;
         }
 
@@ -50,14 +48,14 @@ public class VersionChecker
 
         if (currentVersion < releaseVersion)
         {
-            _logger.Warning("Вы используете старую версию BotLooter. Версия {YourVersion} < {LatestVersion}", currentVersion, releaseVersion);
-            _logger.Information("Вы можете загрузить последнюю версию здесь https://github.com/SmallTailTeam/BotLooter");
+            _logger.Warning("You are using an outdated version of BotLooter. Version {YourVersion} < {LatestVersion}", currentVersion, releaseVersion);
+            _logger.Information("You can download the latest version here: https://github.com/SmallTailTeam/BotLooter");
             return;
         }
 
         if (currentVersion > releaseVersion)
         {
-            _logger.Information("Скорее всего вы используете pre-release версию BotLooter. Версия {YourVersion} > {LatestVersion}", currentVersion, releaseVersion);
+            _logger.Information("You are likely using a pre-release version of BotLooter. Version {YourVersion} > {LatestVersion}", currentVersion, releaseVersion);
             return;
         }
     }

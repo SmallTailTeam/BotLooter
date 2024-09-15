@@ -15,7 +15,7 @@ Console.OutputEncoding = Encoding.UTF8;
 
 AppDomain.CurrentDomain.UnhandledException += (_, eventArgs) =>
 {
-    Log.Logger.Fatal((Exception)eventArgs.ExceptionObject, "Исключение! Для расшифровки можете обратиться к разработчику напрямую или оставить issue на GitHub.");
+    Log.Logger.Fatal((Exception)eventArgs.ExceptionObject, "Exception! For decoding, you can contact the developer directly or leave an issue on GitHub.");
     
     Console.ReadKey();
 };
@@ -25,7 +25,7 @@ var version = new Version(0, 3, 8, 0);
 var versionChecker = new VersionChecker(Log.Logger);
 await versionChecker.Check(version);
 
-Log.Logger.Information("Конфигурационный файл: {ConfigFilePath}", commandLineOptions.ConfigFilePath);
+Log.Logger.Information("Configuration file: {ConfigFilePath}", commandLineOptions.ConfigFilePath);
 var configLoadResult = await Configuration.TryLoadFromFile(commandLineOptions.ConfigFilePath);
 if (configLoadResult.Config is not {} config)
 {
@@ -33,7 +33,7 @@ if (configLoadResult.Config is not {} config)
     return;
 }
 
-Log.Logger.Information("Инвентари для лута: {Inventories}", string.Join(", ", config.Inventories));
+Log.Logger.Information("Inventories for looting: {Inventories}", string.Join(", ", config.Inventories));
 
 FlowUtils.AskForApproval = config.AskForApproval;
 FlowUtils.AskForExit = !config.ExitOnFinish;
@@ -53,7 +53,7 @@ if (credentialsLoadResult.LootAccounts is not { } accountCredentials)
     return;
 }
 
-FlowUtils.WaitForApproval("Всего аккаунтов для лута: {Count}", accountCredentials.Count);
+FlowUtils.WaitForApproval("Total accounts for looting: {Count}", accountCredentials.Count);
 
 var lootClients = CreateLootClients();
 
@@ -75,7 +75,7 @@ async Task<IRestClientProvider?> GetClientProvider()
     {
         var provider = new LocalRestClientProvider();
 
-        FlowUtils.WaitForApproval("Прокси не указаны, используется локальный клиент.");
+        FlowUtils.WaitForApproval("Proxies not specified, using local client.");
         
         return provider;
     }
@@ -91,11 +91,11 @@ async Task<IRestClientProvider?> GetClientProvider()
 
         if (proxyPool.AvailableClientsCount == 0)
         {
-            FlowUtils.AbortWithError($"В файле '{config.ProxiesFilePath}' отсутствуют прокси");
+            FlowUtils.AbortWithError($"No proxies found in the file '{config.ProxiesFilePath}'");
             return null;
         }
         
-        FlowUtils.WaitForApproval("Загружено прокси: {Count}", proxyPool.AvailableClientsCount);
+        FlowUtils.WaitForApproval("Loaded proxies: {Count}", proxyPool.AvailableClientsCount);
 
         return proxyPool;
     }
@@ -108,10 +108,10 @@ void CheckThreadCount()
         switch (clientProvider)
         {
             case ProxyRestClientProvider:
-                Log.Logger.Warning("Потоков {ThreadCount} больше чем прокси {ClientCount}. Количество потоков будет уменьшено до количества прокси.", config.LootThreadCount, clientProvider.AvailableClientsCount);
+                Log.Logger.Warning("Threads {ThreadCount} exceed proxies {ClientCount}. The number of threads will be reduced to the number of proxies.", config.LootThreadCount, clientProvider.AvailableClientsCount);
                 break;
             case LocalRestClientProvider:
-                Log.Logger.Warning("Используется локальный клиент, количество потоков будет уменьшено с {ThreadCount} до {ReducedCount}.", config.LootThreadCount, 1);
+                Log.Logger.Warning("Using local client, the number of threads will be reduced from {ThreadCount} to {ReducedCount}.", config.LootThreadCount, 1);
                 break;
         }
 

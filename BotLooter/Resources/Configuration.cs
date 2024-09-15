@@ -46,7 +46,7 @@ public class Configuration
 
         if (!File.Exists(filePath))
         {
-            return (null, $"Конфигурационный файл '{filePath}' не найден");
+            return (null, $"Configuration file '{filePath}' not found");
         }
 
         var contents = await File.ReadAllTextAsync(filePath);
@@ -67,27 +67,27 @@ public class Configuration
 
             if (deserialized is null)
             {
-                return (null, "Конфиг имеет неверный формат, подробности:" + Environment.NewLine + string.Join(Environment.NewLine, errors));
+                return (null, "The config is in an incorrect format, details:" + Environment.NewLine + string.Join(Environment.NewLine, errors));
             }
 
             config = deserialized;
         }
         catch
         {
-            return (null, "Конфиг имеет неверный формат, подробности:" + Environment.NewLine + string.Join(Environment.NewLine, errors));
+            return (null, "The config is in an incorrect format, details:" + Environment.NewLine + string.Join(Environment.NewLine, errors));
         }
         
         if (new TradeOfferUrl(config.LootTradeOfferUrl) is not { IsValid: true })
         {
-            return (null, "Параметр конфига 'LootTradeOfferUrl' не заполнен или заполнен неверно.");
+            return (null, "The config parameter 'LootTradeOfferUrl' is not filled in or is incorrectly filled.");
         }
 
         if (config.Inventories?.Count == 0)
         {
             return (null, """
-            В параметре конфига 'Inventories' не указаны инвентари для лута.
-            Формат: appId/contextId
-            Пример заполнения с инвентарем CS:GO
+            The 'Inventories' parameter in the config does not specify inventories for looting.
+            Format: appId/contextId
+            Example for a CS:GO inventory
             ...
             "Inventories": [
                 "730/2"
@@ -98,7 +98,7 @@ public class Configuration
 
         if (config.MaxItemsPerTrade > 8192)
         {
-            return (null, $"Параметр конфига 'MaxItemsPerTrade' не должен быть больше 8192, текущее значение: {config.MaxItemsPerTrade}");
+            return (null, $"The config parameter 'MaxItemsPerTrade' should not be more than 8192, current value: {config.MaxItemsPerTrade}");
         }
             
         return (config, "");
