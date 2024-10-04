@@ -128,7 +128,7 @@ public class SteamWeb
         request.AddHeader("Referer", $"https://steamcommunity.com/tradeoffer/new/?partner={tradeOfferUrl.Partner}");;
         
         request.AddParameter("serverid", "1");
-        request.AddParameter("partner", tradeOfferUrl.SteamId64);
+        request.AddParameter("partner", (SteamId64)tradeOfferUrl.Partner);
         request.AddParameter("tradeoffermessage", "");
         request.AddParameter("captcha", "");
         request.AddParameter("trade_offer_create_params", new JObject
