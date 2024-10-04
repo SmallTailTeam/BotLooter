@@ -22,7 +22,7 @@ AppDomain.CurrentDomain.UnhandledException += (_, eventArgs) =>
 
 var version = new Version(0, 3, 8, 0);
 
-var versionChecker = new VersionChecker(Log.Logger);
+var versionChecker = new GitHubVersionChecker(Log.Logger);
 await versionChecker.Check(version);
 
 Log.Logger.Information("Конфигурационный файл: {ConfigFilePath}", commandLineOptions.ConfigFilePath);

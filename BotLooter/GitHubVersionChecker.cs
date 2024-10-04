@@ -3,13 +3,16 @@ using Serilog;
 
 namespace BotLooter;
 
-public class VersionChecker
+public class GitHubVersionChecker
 {
+    private const long RepositoryId = 635245709;
+    private const string RepositoryUrl = "https://github.com/SmallTailTeam/BotLooter";
+    
     private readonly ILogger _logger;
 
     private readonly IGitHubClient _gitHubClient;
 
-    public VersionChecker(ILogger logger)
+    public GitHubVersionChecker(ILogger logger)
     {
         _logger = logger;
         
@@ -22,7 +25,7 @@ public class VersionChecker
 
         try
         {
-            latestRelease = await _gitHubClient.Repository.Release.GetLatest(635245709);
+            latestRelease = await _gitHubClient.Repository.Release.GetLatest(RepositoryId);
         }
         catch
         {
@@ -32,26 +35,26 @@ public class VersionChecker
         if (latestRelease is null)
         {
             _logger.Warning("Не удалось получить последнюю версию BotLooter.");
-            _logger.Information("Ваша версия {Version} Проверить последнюю версию можно здесь https://github.com/SmallTailTeam/BotLooter", currentVersion);
+            _logger.Information("Ваша версия {Version} Проверить последнюю версию можно здесь {RepositoryUrl}", currentVersion, RepositoryUrl);
             return;
         }
 
         if (!Version.TryParse(latestRelease.TagName, out var releaseVersion))
         {
-            _logger.Information("BotLooter {Version} https://github.com/SmallTailTeam/BotLooter", currentVersion);
+            _logger.Information("BotLooter {Version} {RepositoryUrl}", currentVersion, RepositoryUrl);
             return;
         }
         
         if (currentVersion == releaseVersion)
         {
-            _logger.Information("BotLooter {Version} https://github.com/SmallTailTeam/BotLooter", currentVersion);
+            _logger.Information("BotLooter {Version} {RepositoryUrl}", currentVersion, RepositoryUrl);
             return;
         }
 
         if (currentVersion < releaseVersion)
         {
             _logger.Warning("Вы используете старую версию BotLooter. Версия {YourVersion} < {LatestVersion}", currentVersion, releaseVersion);
-            _logger.Information("Вы можете загрузить последнюю версию здесь https://github.com/SmallTailTeam/BotLooter");
+            _logger.Information("Вы можете загрузить последнюю версию здесь {RepositoryUrl}", RepositoryUrl);
             return;
         }
 
