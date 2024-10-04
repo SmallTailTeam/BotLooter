@@ -7,7 +7,7 @@ namespace BotLooter.Resources;
 
 public class ProxyRestClientProvider : IRestClientProvider
 {
-    public int AvailableClientsCount => _proxiedClients.Count;
+    public int AvailableClientCount => _proxiedClients.Count;
     
     private readonly List<RestClient> _proxiedClients;
     private int _proxyIndex;

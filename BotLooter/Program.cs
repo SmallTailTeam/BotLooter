@@ -89,13 +89,13 @@ async Task<IRestClientProvider?> GetClientProvider()
             return null;
         }
 
-        if (proxyPool.AvailableClientsCount == 0)
+        if (proxyPool.AvailableClientCount == 0)
         {
             FlowUtils.AbortWithError($"В файле '{config.ProxiesFilePath}' отсутствуют прокси");
             return null;
         }
         
-        FlowUtils.WaitForApproval("Загружено прокси: {Count}", proxyPool.AvailableClientsCount);
+        FlowUtils.WaitForApproval("Загружено прокси: {Count}", proxyPool.AvailableClientCount);
 
         return proxyPool;
     }
@@ -103,19 +103,19 @@ async Task<IRestClientProvider?> GetClientProvider()
 
 void CheckThreadCount()
 {
-    if (config.LootThreadCount > clientProvider.AvailableClientsCount)
+    if (config.LootThreadCount > clientProvider.AvailableClientCount)
     {
         switch (clientProvider)
         {
             case ProxyRestClientProvider:
-                Log.Logger.Warning("Потоков {ThreadCount} больше чем прокси {ClientCount}. Количество потоков будет уменьшено до количества прокси.", config.LootThreadCount, clientProvider.AvailableClientsCount);
+                Log.Logger.Warning("Потоков {ThreadCount} больше чем прокси {ClientCount}. Количество потоков будет уменьшено до количества прокси.", config.LootThreadCount, clientProvider.AvailableClientCount);
                 break;
             case LocalRestClientProvider:
                 Log.Logger.Warning("Используется локальный клиент, количество потоков будет уменьшено с {ThreadCount} до {ReducedCount}.", config.LootThreadCount, 1);
                 break;
         }
 
-        config.LootThreadCount = clientProvider.AvailableClientsCount;
+        config.LootThreadCount = clientProvider.AvailableClientCount;
     }
 }
 
