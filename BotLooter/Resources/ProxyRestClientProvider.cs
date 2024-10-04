@@ -1,5 +1,4 @@
-﻿using System.Net;
-using RestSharp;
+﻿using RestSharp;
 using RestSharp.Serializers.NewtonsoftJson;
 using Serilog;
 
@@ -38,22 +37,21 @@ public class ProxyRestClientProvider : IRestClientProvider
 
         var lines = await File.ReadAllLinesAsync(filePath);
         
-        lines = lines
-            .Select(el => el.Trim())
+        var proxyConnectionStrings = lines
+            .Select(el => (ProxyConnectionString)el.Trim())
             .Distinct()
             .ToArray();
 
         var proxiedClients = new List<RestClient>();
-
         var lineNumber = 0;
         
-        foreach (var line in lines)
+        foreach (var proxyConnectionString in proxyConnectionStrings)
         {
             lineNumber++;
 
-            var proxy = TryParseProxy(line);
+            var webProxy = proxyConnectionString.TryParse();
 
-            if (proxy is null)
+            if (webProxy is null)
             {
                 Log.Logger.Warning("Неверный формат прокси на строке {LineNumber}", lineNumber);
                 continue;
@@ -63,7 +61,7 @@ public class ProxyRestClientProvider : IRestClientProvider
             {
                 UserAgent =
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-                Proxy = proxy,
+                Proxy = webProxy,
                 FollowRedirects = false,
                 MaxTimeout = 60000
             }, 
@@ -78,28 +76,5 @@ public class ProxyRestClientProvider : IRestClientProvider
         }
 
         return (new ProxyRestClientProvider(proxiedClients), "");
-    }
-
-    private static WebProxy? TryParseProxy(string line)
-    {
-        try
-        {
-            var uri = new Uri(line);
-
-            var proxy = new WebProxy(uri);
-
-            if (!string.IsNullOrEmpty(uri.UserInfo))
-            {
-                var credentials = uri.UserInfo.Split(':', 2);
-
-                proxy.Credentials = new NetworkCredential(credentials[0], credentials[1]);
-            }
-
-            return proxy;
-        }
-        catch
-        {
-            return null;
-        }
     }
 }
