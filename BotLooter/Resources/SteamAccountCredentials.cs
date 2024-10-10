@@ -26,15 +26,15 @@ public class SteamAccountCredentials
     {
         var loadedAccounts = new List<SteamAccountCredentials>();
 
-        Log.Logger.Information("Загружаю аккаунты...");
+        Log.Logger.Information("Loading accounts...");
         
         var loadedCountFromSteamSessions = await LoadFromSteamSessions(loadedAccounts, config.SteamSessionsDirectoryPath);
         var loadedCountFromSecrets = await LoadFromSecrets(loadedAccounts, config.AccountsFilePath, config.SecretsDirectoryPath);
 
         loadedAccounts = await FilterLoadedAccounts(config.IgnoreAccountsFilePath, loadedAccounts);
         
-        Log.Logger.Information("Стим-сессии: {Count}", loadedCountFromSteamSessions);
-        Log.Logger.Information("Секреты: {Count}", loadedCountFromSecrets);
+        Log.Logger.Information("Steam sessions: {Count}", loadedCountFromSteamSessions);
+        Log.Logger.Information("Secrets: {Count}", loadedCountFromSecrets);
         
         return (loadedAccounts, "");
     }
@@ -62,7 +62,7 @@ public class SteamAccountCredentials
 
         if (!File.Exists(filePath))
         {
-            Log.Logger.Warning("Файл с игнорируемыми логинами '{Path}' не найден", filePath);
+            Log.Logger.Warning("Ignored logins file '{Path}' not found", filePath);
             return null;
         }
 
@@ -82,7 +82,7 @@ public class SteamAccountCredentials
         
         if (!Directory.Exists(steamSessionsDirectoryPath))
         {
-            Log.Logger.Warning($"Папки с стим-сессиями '{steamSessionsDirectoryPath}' не существует");
+            Log.Logger.Warning($"Directory with steam sessions '{steamSessionsDirectoryPath}' does not exist");
             return 0;
         }
 
@@ -105,7 +105,7 @@ public class SteamAccountCredentials
 
             if (steamSessionFile is null)
             {
-                Log.Logger.Warning("Невалидный файл стим-сессии '{FilePath}', поддерживаются только файлы версии 2", filePath);
+                Log.Logger.Warning("Invalid steam session file '{FilePath}', only version 2 files are supported", filePath);
                 continue;
             }
 
@@ -150,13 +150,13 @@ public class SteamAccountCredentials
         
         if (!File.Exists(accountsFile))
         {
-            Log.Logger.Warning($"Файла с аккаунтами '{accountsFile}' не существует");
+            Log.Logger.Warning($"Accounts file '{accountsFile}' does not exist");
             return 0;
         }
         
         if (!Directory.Exists(secretsDirectory))
         {
-            Log.Logger.Warning($"Папки с секретами '{secretsDirectory}' не существует");
+            Log.Logger.Warning($"Secrets directory '{secretsDirectory}' does not exist");
             return 0;
         }
 
@@ -176,7 +176,7 @@ public class SteamAccountCredentials
 
             if (split.Length != 2)
             {
-                Log.Logger.Warning("Неверный формат аккаунта на строке {LineNumber}", lineNumber);
+                Log.Logger.Warning("Invalid account format on line {LineNumber}", lineNumber);
                 continue;
             }
 
@@ -187,7 +187,7 @@ public class SteamAccountCredentials
 
             if (secret is null)
             {
-                Log.Logger.Warning("{Login} - Не найден секретный файл", login);
+                Log.Logger.Warning("{Login} - Secret file not found", login);
                 continue;
             }
 
@@ -214,13 +214,13 @@ public class SteamAccountCredentials
 
                 if (secret is null)
                 {
-                    Log.Logger.Warning("Невалидный секретный файл: {FilePath}", filePath);
+                    Log.Logger.Warning("Invalid secret file: {FilePath}", filePath);
                     continue;
                 }
 
                 if (secret is not { SharedSecret: not null, IdentitySecret: not null })
                 {
-                    Log.Logger.Warning("В секретном файле отсутствует shared_secret или identity_secret: {Path}", filePath);
+                    Log.Logger.Warning("Secret file missing shared_secret or identity_secret: {Path}", filePath);
                     continue;
                 }
 
@@ -233,7 +233,7 @@ public class SteamAccountCredentials
             }
             catch
             {
-                Log.Logger.Warning("Невалидный секретный файл: {FilePath}", filePath);
+                Log.Logger.Warning("Invalid secret file: {FilePath}", filePath);
             }
         }
 

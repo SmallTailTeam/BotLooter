@@ -58,7 +58,7 @@ public class LootClient
 
         if (assets.Count < 1)
         {
-            return new LootResult(false, "Пустые инвентари");
+            return new LootResult(false, "Empty inventories");
         }
 
         var tradeOffer = new JsonTradeOffer
@@ -96,10 +96,10 @@ public class LootClient
 
         if (!confirmationResult)
         {
-            return new LootResult(false, "Не смог подтвердить обмен");
+            return new LootResult(false, "Could not confirm the trade");
         }
 
-        return new LootResult(true, $"Залутан! Предметов: {tradeOffer.Me.Assets.Count}", tradeOffer.Me.Assets.Count);
+        return new LootResult(true, $"Looted! Items: {tradeOffer.Me.Assets.Count}", tradeOffer.Me.Assets.Count);
     }
 
     private async Task<(List<Asset>? Assets, string message)> GetAssetsToSend(Configuration config)
@@ -126,7 +126,7 @@ public class LootClient
 
             if (inventoryResponse is null || inventoryResponse is not {} inventoryData)
             {
-                return (null, $"Не смог получить инвентарь {inventory}.");
+                return (null, $"Could not get inventory {inventory}.");
             }
             
             foreach (var description in inventoryData.Descriptions.Where(d => !d.Tradable))
@@ -225,7 +225,7 @@ public class LootClient
 
         if (sendTradeOfferResponse.Data is not { } sendTradeOfferData)
         {
-            return (null, $"Не смог отправить обмен - {sendTradeOfferResponse.StatusCode} {sendTradeOfferResponse.Content}");
+            return (null, $"Could not send trade - {sendTradeOfferResponse.StatusCode} {sendTradeOfferResponse.Content}");
         }
 
         if (!string.IsNullOrWhiteSpace(sendTradeOfferData.Error))
@@ -234,15 +234,15 @@ public class LootClient
             {
                 var cantTradeTime = await _steamWeb.GetHelpWhyCantITradeTime();
 
-                return (null, $"Обмен будет доступен через {cantTradeTime}");
+                return (null, $"Trade will be available in {cantTradeTime}");
             }
             
-            return (null, $"Не смог отправить обмен - {sendTradeOfferData.Error}");
+            return (null, $"Could not send trade - {sendTradeOfferData.Error}");
         }
 
         if (!ulong.TryParse(sendTradeOfferData.TradeofferId, out var tradeOfferId))
         {
-            return (null, $"Не смог спарсить айди обмена - {sendTradeOfferResponse.StatusCode} {sendTradeOfferResponse.Content}");
+            return (null, $"Could not parse trade ID - {sendTradeOfferResponse.StatusCode} {sendTradeOfferResponse.Content}");
         }
 
         return (tradeOfferId, "");

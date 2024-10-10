@@ -9,7 +9,6 @@ public class GitHubVersionChecker
     private const string RepositoryUrl = "https://github.com/SmallTailTeam/BotLooter";
     
     private readonly ILogger _logger;
-
     private readonly IGitHubClient _gitHubClient;
 
     public GitHubVersionChecker(ILogger logger)
@@ -22,7 +21,6 @@ public class GitHubVersionChecker
     public async Task Check(Version currentVersion)
     {
         Release? latestRelease = null;
-
         try
         {
             latestRelease = await _gitHubClient.Repository.Release.GetLatest(RepositoryId);
@@ -34,8 +32,8 @@ public class GitHubVersionChecker
 
         if (latestRelease is null)
         {
-            _logger.Warning("Не удалось получить последнюю версию BotLooter.");
-            _logger.Information("Ваша версия {Version} Проверить последнюю версию можно здесь {RepositoryUrl}", currentVersion, RepositoryUrl);
+            _logger.Warning("Failed to retrieve the latest version of BotLooter.");
+            _logger.Information("Your version is {Version}. You can check the latest version here: https://github.com/SmallTailTeam/BotLooter", currentVersion);
             return;
         }
 
@@ -53,14 +51,14 @@ public class GitHubVersionChecker
 
         if (currentVersion < releaseVersion)
         {
-            _logger.Warning("Вы используете старую версию BotLooter. Версия {YourVersion} < {LatestVersion}", currentVersion, releaseVersion);
-            _logger.Information("Вы можете загрузить последнюю версию здесь {RepositoryUrl}", RepositoryUrl);
+            _logger.Warning("You are using an outdated version of BotLooter. Version {YourVersion} < {LatestVersion}", currentVersion, releaseVersion);
+            _logger.Information("You can download the latest version here: https://github.com/SmallTailTeam/BotLooter");
             return;
         }
 
         if (currentVersion > releaseVersion)
         {
-            _logger.Information("Скорее всего вы используете pre-release версию BotLooter. Версия {YourVersion} > {LatestVersion}", currentVersion, releaseVersion);
+            _logger.Information("You are likely using a pre-release version of BotLooter. Version {YourVersion} > {LatestVersion}", currentVersion, releaseVersion);
             return;
         }
     }
