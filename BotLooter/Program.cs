@@ -15,7 +15,7 @@ Console.OutputEncoding = Encoding.UTF8;
 
 AppDomain.CurrentDomain.UnhandledException += (_, eventArgs) =>
 {
-    Log.Logger.Fatal((Exception)eventArgs.ExceptionObject, "Exception! For decoding, you can contact the developer directly or leave an issue on GitHub.");
+    Log.Logger.Fatal((Exception)eventArgs.ExceptionObject, "Exception! You can contact the developer directly for decryption or leave an issue on GitHub.");
     
     Console.ReadKey();
 };
@@ -75,7 +75,7 @@ async Task<IRestClientProvider?> GetClientProvider()
     {
         var provider = new LocalRestClientProvider();
 
-        FlowUtils.WaitForApproval("Proxies not specified, using local client.");
+        FlowUtils.WaitForApproval("No proxies specified, using local client.");
         
         return provider;
     }
@@ -91,11 +91,11 @@ async Task<IRestClientProvider?> GetClientProvider()
 
         if (proxyPool.AvailableClientCount == 0)
         {
-            FlowUtils.AbortWithError($"No proxies found in the file '{config.ProxiesFilePath}'");
+            FlowUtils.AbortWithError($"No proxies found in file '{config.ProxiesFilePath}'");
             return null;
         }
         
-        FlowUtils.WaitForApproval("Loaded proxies: {Count}", proxyPool.AvailableClientsCount);
+        FlowUtils.WaitForApproval("Loaded proxies: {Count}", proxyPool.AvailableClientCount);
 
         return proxyPool;
     }
@@ -108,10 +108,10 @@ void CheckThreadCount()
         switch (clientProvider)
         {
             case ProxyRestClientProvider:
-                Log.Logger.Warning("Threads {ThreadCount} exceed proxies {ClientCount}. The number of threads will be reduced to the number of proxies.", config.LootThreadCount, clientProvider.AvailableClientsCount);
+                Log.Logger.Warning("Threads {ThreadCount} exceed proxies {ClientCount}. Thread count will be reduced to proxy count.", config.LootThreadCount, clientProvider.AvailableClientCount);
                 break;
             case LocalRestClientProvider:
-                Log.Logger.Warning("Using local client, the number of threads will be reduced from {ThreadCount} to {ReducedCount}.", config.LootThreadCount, 1);
+                Log.Logger.Warning("Using local client, thread count will be reduced from {ThreadCount} to {ReducedCount}.", config.LootThreadCount, 1);
                 break;
         }
 
