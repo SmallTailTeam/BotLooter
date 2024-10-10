@@ -22,7 +22,7 @@ AppDomain.CurrentDomain.UnhandledException += (_, eventArgs) =>
 
 var version = new Version(0, 3, 8, 0);
 
-var versionChecker = new VersionChecker(Log.Logger);
+var versionChecker = new GitHubVersionChecker(Log.Logger);
 await versionChecker.Check(version);
 
 Log.Logger.Information("Configuration file: {ConfigFilePath}", commandLineOptions.ConfigFilePath);
@@ -89,7 +89,7 @@ async Task<IRestClientProvider?> GetClientProvider()
             return null;
         }
 
-        if (proxyPool.AvailableClientsCount == 0)
+        if (proxyPool.AvailableClientCount == 0)
         {
             FlowUtils.AbortWithError($"No proxies found in the file '{config.ProxiesFilePath}'");
             return null;
@@ -103,7 +103,7 @@ async Task<IRestClientProvider?> GetClientProvider()
 
 void CheckThreadCount()
 {
-    if (config.LootThreadCount > clientProvider.AvailableClientsCount)
+    if (config.LootThreadCount > clientProvider.AvailableClientCount)
     {
         switch (clientProvider)
         {
@@ -115,7 +115,7 @@ void CheckThreadCount()
                 break;
         }
 
-        config.LootThreadCount = clientProvider.AvailableClientsCount;
+        config.LootThreadCount = clientProvider.AvailableClientCount;
     }
 }
 

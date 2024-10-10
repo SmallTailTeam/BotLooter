@@ -1,44 +1,38 @@
 ﻿using System.Text.RegularExpressions;
+using BotLooter.Steam.Exceptions;
 
 namespace BotLooter.Steam.Contracts;
 
-public readonly partial struct TradeOfferUrl
+public readonly partial record struct TradeOfferUrl
 {
-    public string Value { get; }
-    public SteamId3? Partner => ToPartner();
-    public string? Token => ToToken();
-    public SteamId64? SteamId64 => Partner;
-    public bool IsValid => _match.Success;
-
-    private readonly Match _match;
+    public string Url { get; }
     
-    public TradeOfferUrl(string value)
-    {
-        Value = value;
-
-        try
-        {
-            _match = TradeOfferUrlRegex().Match(Value);
-        }
-        catch
-        {
-            _match = Match.Empty;
-        }
-    }
-
-    private string? ToToken()
-    {
-        return !IsValid ? null : _match.Groups[2].Value;
-    }
+    public SteamId3 Partner { get; }
+    public string Token { get; }
     
-    private SteamId3? ToPartner()
+    public TradeOfferUrl(string url)
     {
-        return !IsValid ? null : new SteamId3(ulong.Parse(_match.Groups[1].Value));
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            throw new InvalidTradeOfferUrlException(url);
+        }
+        
+        var match = TradeOfferUrlRegex().Match(url);
+        
+        if (!match.Success)
+        {
+            throw new InvalidTradeOfferUrlException(url);
+        }
+        
+        Url = url;
+
+        Partner = ulong.Parse(match.Groups[1].Value);
+        Token = match.Groups[2].Value;
     }
 
     public override string ToString()
     {
-        return Value;
+        return Url;
     }
 
     public static implicit operator TradeOfferUrl(string url)

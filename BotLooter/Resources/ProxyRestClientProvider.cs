@@ -1,5 +1,4 @@
-﻿using System.Net;
-using RestSharp;
+﻿using RestSharp;
 using RestSharp.Serializers.NewtonsoftJson;
 using Serilog;
 
@@ -7,7 +6,7 @@ namespace BotLooter.Resources;
 
 public class ProxyRestClientProvider : IRestClientProvider
 {
-    public int AvailableClientsCount => _proxiedClients.Count;
+    public int AvailableClientCount => _proxiedClients.Count;
     
     private readonly List<RestClient> _proxiedClients;
     private int _proxyIndex;
@@ -38,68 +37,44 @@ public class ProxyRestClientProvider : IRestClientProvider
 
         var lines = await File.ReadAllLinesAsync(filePath);
         
-        lines = lines
-            .Select(el => el.Trim())
+        var proxyConnectionStrings = lines
+            .Select(el => (ProxyConnectionString)el.Trim())
             .Distinct()
             .ToArray();
 
         var proxiedClients = new List<RestClient>();
-
         var lineNumber = 0;
         
-        foreach (var line in lines)
+        foreach (var proxyConnectionString in proxyConnectionStrings)
         {
             lineNumber++;
 
-            var proxy = TryParseProxy(line);
+            var webProxy = proxyConnectionString.TryParse();
 
-            if (proxy is null)
+            if (webProxy is null)
             {
                 Log.Logger.Warning("Неверный формат прокси на строке {LineNumber}", lineNumber);
                 continue;
             }
 
-            var restClient = new RestClient(new RestClientOptions
-            {
-                UserAgent =
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-                Proxy = proxy,
-                FollowRedirects = false,
-                MaxTimeout = 60000
-            }, 
-            configureDefaultHeaders: h => 
-            {
-                h.Add("Accept", "*/*");
-                h.Add("Connection", "keep-alive");
-            },
-            configureSerialization: b => b.UseNewtonsoftJson());
+            var restClient = new RestClient(
+                o =>
+                {
+                    o.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+                    o.FollowRedirects = false;
+                    o.MaxTimeout = 60000;
+                    o.Proxy = webProxy;
+                },
+                configureDefaultHeaders: h => 
+                {
+                    h.Add("Accept", "*/*");
+                    h.Add("Connection", "keep-alive");
+                },
+                configureSerialization: b => b.UseNewtonsoftJson());
 
             proxiedClients.Add(restClient);
         }
 
         return (new ProxyRestClientProvider(proxiedClients), "");
-    }
-
-    private static WebProxy? TryParseProxy(string line)
-    {
-        try
-        {
-            var uri = new Uri(line);
-
-            var proxy = new WebProxy(uri);
-
-            if (!string.IsNullOrEmpty(uri.UserInfo))
-            {
-                var credentials = uri.UserInfo.Split(':', 2);
-
-                proxy.Credentials = new NetworkCredential(credentials[0], credentials[1]);
-            }
-
-            return proxy;
-        }
-        catch
-        {
-            return null;
-        }
     }
 }

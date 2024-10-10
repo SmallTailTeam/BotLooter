@@ -1,4 +1,5 @@
 ﻿using BotLooter.Steam.Contracts;
+using BotLooter.Steam.Exceptions;
 using Newtonsoft.Json;
 
 namespace BotLooter.Resources;
@@ -76,8 +77,12 @@ public class Configuration
         {
             return (null, "The config is in an incorrect format, details:" + Environment.NewLine + string.Join(Environment.NewLine, errors));
         }
-        
-        if (new TradeOfferUrl(config.LootTradeOfferUrl) is not { IsValid: true })
+
+        try
+        {
+            _ = new TradeOfferUrl(config.LootTradeOfferUrl);
+        }
+        catch (InvalidTradeOfferUrlException)
         {
             return (null, "The config parameter 'LootTradeOfferUrl' is not filled in or is incorrectly filled.");
         }

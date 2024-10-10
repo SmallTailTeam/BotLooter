@@ -3,12 +3,15 @@ using Serilog;
 
 namespace BotLooter;
 
-public class VersionChecker
+public class GitHubVersionChecker
 {
+    private const long RepositoryId = 635245709;
+    private const string RepositoryUrl = "https://github.com/SmallTailTeam/BotLooter";
+    
     private readonly ILogger _logger;
     private readonly IGitHubClient _gitHubClient;
 
-    public VersionChecker(ILogger logger)
+    public GitHubVersionChecker(ILogger logger)
     {
         _logger = logger;
         
@@ -20,7 +23,7 @@ public class VersionChecker
         Release? latestRelease = null;
         try
         {
-            latestRelease = await _gitHubClient.Repository.Release.GetLatest(635245709);
+            latestRelease = await _gitHubClient.Repository.Release.GetLatest(RepositoryId);
         }
         catch
         {
@@ -36,13 +39,13 @@ public class VersionChecker
 
         if (!Version.TryParse(latestRelease.TagName, out var releaseVersion))
         {
-            _logger.Information("BotLooter {Version} https://github.com/SmallTailTeam/BotLooter", currentVersion);
+            _logger.Information("BotLooter {Version} {RepositoryUrl}", currentVersion, RepositoryUrl);
             return;
         }
         
         if (currentVersion == releaseVersion)
         {
-            _logger.Information("BotLooter {Version} https://github.com/SmallTailTeam/BotLooter", currentVersion);
+            _logger.Information("BotLooter {Version} {RepositoryUrl}", currentVersion, RepositoryUrl);
             return;
         }
 
