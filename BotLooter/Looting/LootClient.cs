@@ -184,7 +184,7 @@ public class LootClient
 
             if (config.LootOnlyItemsWithTags.Count > 0)
             {
-                foreach (var description in inventoryData.Descriptions.Where(d => !d.Tags.Any(t => config.LootOnlyItemsWithTags.Contains(t.LocalizedTagName))))
+                foreach (var description in inventoryData.Descriptions.Where(d => d.Tags is not null && !d.Tags.Any(t => config.LootOnlyItemsWithTags.Contains(t.LocalizedTagName))))
                 {
                     filteredOut.Add(description.Classid);
                 }
@@ -192,7 +192,7 @@ public class LootClient
 
             if (config.IgnoreItemsWithTags.Count > 0)
             {
-                foreach (var description in inventoryData.Descriptions.Where(d => d.Tags.Any(t => config.IgnoreItemsWithTags.Contains(t.LocalizedTagName))))
+                foreach (var description in inventoryData.Descriptions.Where(d => d.Tags is not null && d.Tags.Any(t => config.IgnoreItemsWithTags.Contains(t.LocalizedTagName))))
                 {
                     filteredOut.Add(description.Classid);
                 }

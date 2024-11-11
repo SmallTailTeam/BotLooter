@@ -100,7 +100,7 @@ public class Description
     public bool Marketable { get; set; }
 
     [JsonProperty("tags")]
-    public List<Tag> Tags { get; set; }
+    public List<Tag>? Tags { get; set; }
 
     [JsonProperty("value")]
     public string Value { get; set; }

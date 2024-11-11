@@ -38,7 +38,7 @@ public class ProxyRestClientProvider : IRestClientProvider
         var lines = await File.ReadAllLinesAsync(filePath);
         
         var proxyConnectionStrings = lines
-            .Select(el => (ProxyConnectionString)el.Trim())
+            .Select(el => new ProxyConnectionString(el.Trim()))
             .Distinct()
             .ToArray();
 

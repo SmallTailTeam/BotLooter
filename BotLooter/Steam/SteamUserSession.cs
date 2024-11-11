@@ -80,7 +80,7 @@ public class SteamUserSession
 
                 if (!loginResult.Success)
                 {
-                    return (false, $"Не удалось авторизоваться: {loginResult.Message}");
+                    return (false, $"Не удалось авторизоваться: {loginResult.Message} {(loginResult.XEResult is null ? "" : $"({loginResult.XEResult})")}");
                 }
             }
 
