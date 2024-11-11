@@ -1,3 +1,5 @@
+This project has been translated to english by me, enjoy.
+
 ## Описание
 
 Софт позволяет передать предметы от нескольких Steam аккаунтов на один.
