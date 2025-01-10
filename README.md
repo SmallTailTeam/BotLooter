@@ -11,56 +11,30 @@
 
 ## Конфиг
 
-BotLooter.Config.json
+[Пример](https://github.com/SmallTailTeam/BotLooter/blob/main/BotLooter.Config.json)
 
-```json
-{
- "LootThreadCount": 1,
- "ProxiesFilePath": "proxies.txt",
+### Параметры
 
- "AskForApproval": true,
- "ExitOnFinish": false,
-
- "LootTradeOfferUrl": "",
-
- "AccountsFilePath": "",
- "IgnoreAccountsFilePath": "",
- "SecretsDirectoryPath": "",
- "SteamSessionsDirectoryPath": "",
-
- "SuccessfulLootsExportFilePath": "",
-
- "DelayBetweenAccountsSeconds": 30,
- "DelayInventoryEmptySeconds": 10,
-
- "Inventories": ["440/2", "753/6", "730/2"],
-
- "MaxItemsPerTrade": 8192,
- "MaxItemsPerAllTrades": 100000,
-
- "IgnoreMarketable": false,
- "IgnoreNotMarketable": false,
-
- "LootOnlyItemsWithNames": ["Mann Co. Supply Crate Key"],
- "IgnoreItemsWithNames": ["The Frying Pan"],
-
- "LootOnlyItemsWithAppIds": [351940],
- "IgnoreItemsWithAppIds": [12345],
-
- "LootOnlyItemsWithTags": ["Trading Card", "Booster Pack"],
- "IgnoreItemsWithTags": ["Profile Background"]
-}
-```
-
----
-
-### `"LootTradeOfferUrl"`
+### `"LootTradeOfferUrl"` и `"LootTradeOfferUrls"`
 
 Cсылка на трейд оффер, на который будут отправляться предметы.
 \
 Для работы необходимо скопировать полную актуальную ссылку. Пример.
 
-- `"https://steamcommunity.com/tradeoffer/new/?partner=9639579492&token=2ix22Ruv2"`
+```json
+"LootTradeOfferUrl": "https://steamcommunity.com/tradeoffer/new/?partner=9639579492&token=2ix22Ruv2"
+```
+
+В `LootTradeOfferUrls` можно указать несколько ссылок на обмен, обмены будет отправлятся на все ссылки в случайном порядке. Пример.
+
+```json
+"LootTradeOfferUrls": [
+    "https://steamcommunity.com/tradeoffer/new/?partner=9639579492&token=2ix22Ruv2",
+    "https://steamcommunity.com/tradeoffer/new/?partner=9639579492&token=2ix22Ruv2"
+]
+```
+
+Если указаны оба параметра - предпочтение будет отдано `LootTradeOfferUrl`.
 
 ---
 
@@ -216,7 +190,7 @@ Cсылка на трейд оффер, на который будут отпр�
 ```json
 "LootOnlyItemsWithNames": [
     "Mann Co. Supply Crate Key",
-    "Tour of Duty Ticket",
+    "Tour of Duty Ticket"
 ]
 ```
 
