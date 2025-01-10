@@ -1,0 +1,42 @@
+{
+    "LootThreadCount": 1,
+    "ProxiesFilePath": "proxies.txt",
+    "AskForApproval": true,
+    "ExitOnFinish": false,
+    "LootTradeOfferUrl": "",
+    "AccountsFilePath": "",
+    "IgnoreAccountsFilePath": "",
+    "SecretsDirectoryPath": "",
+    "SteamSessionsDirectoryPath": "",
+    "SuccessfulLootsExportFilePath": "",
+    "DelayBetweenAccountsSeconds": 30,
+    "DelayInventoryEmptySeconds": 10,
+    "Inventories": [
+        "440/2",
+        "753/6",
+        "730/2"
+    ],
+    "MaxItemsPerTrade": 8192,
+    "MaxItemsPerAllTrades": 100000,
+    "IgnoreMarketable": false,
+    "IgnoreNotMarketable": false,
+    "LootOnlyItemsWithNames": [
+        "Mann Co. Supply Crate Key"
+    ],
+    "IgnoreItemsWithNames": [
+        "The Frying Pan"
+    ],
+    "LootOnlyItemsWithAppIds": [
+        351940
+    ],
+    "IgnoreItemsWithAppIds": [
+        12345
+    ],
+    "LootOnlyItemsWithTags": [
+        "Trading Card",
+        "Booster Pack"
+    ],
+    "IgnoreItemsWithTags": [
+        "Profile Background"
+    ]
+}
