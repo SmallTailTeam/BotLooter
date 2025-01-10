@@ -6,7 +6,8 @@ namespace BotLooter.Resources;
 
 public class Configuration
 {
-    public string LootTradeOfferUrl { get; set; } = "";
+    public string? LootTradeOfferUrl { get; set; } = null;
+    public List<string>? LootTradeOfferUrls { get; set; } = null;
     
     public string SecretsDirectoryPath { get; set; } = "";
     public string AccountsFilePath { get; set; } = "";
@@ -78,13 +79,36 @@ public class Configuration
             return (null, "Конфиг имеет неверный формат, подробности:" + Environment.NewLine + string.Join(Environment.NewLine, errors));
         }
 
-        try
+        if (config.LootTradeOfferUrl is not null)
         {
-            _ = new TradeOfferUrl(config.LootTradeOfferUrl);
+            try
+            {
+                _ = new TradeOfferUrl(config.LootTradeOfferUrl);
+            }
+            catch (InvalidTradeOfferUrlException)
+            {
+                return (null, "Параметр конфига 'LootTradeOfferUrl' не заполнен или заполнен неверно.");
+            }
         }
-        catch (InvalidTradeOfferUrlException)
+
+        if (config.LootTradeOfferUrls is not null)
         {
-            return (null, "Параметр конфига 'LootTradeOfferUrl' не заполнен или заполнен неверно.");
+            foreach (var tradeOfferUrl in config.LootTradeOfferUrls)
+            {
+                try
+                {
+                    _ = new TradeOfferUrl(tradeOfferUrl);
+                }
+                catch (InvalidTradeOfferUrlException)
+                {
+                    return (null, "Параметр конфига 'LootTradeOfferUrls' имеет неверные ссылки на обмен.");
+                }
+            }
+        }
+
+        if (config.LootTradeOfferUrl is null && config.LootTradeOfferUrls is null)
+        {
+            return (null, "Необходимо заполнить 'LootTradeOfferUrl' или 'LootTradeOfferUrls'.");
         }
 
         if (config.Inventories?.Count == 0)

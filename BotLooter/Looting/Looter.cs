@@ -19,6 +19,8 @@ public class Looter
     {
         _logger.Information("Начинаю лутать. Потоков: {ThreadCount}", config.LootThreadCount);
 
+        var lootReceiverPicker = new LootReceiverPicker(config);
+        
         var lootResults = new ConcurrentBag<LootResult>();
         
         var counter = 0;
@@ -38,7 +40,9 @@ public class Looter
                     return;
                 }
 
-                var lootResult = await lootClient.TryLoot(config.LootTradeOfferUrl, config);
+                var lootReceiver = lootReceiverPicker.Pick();
+
+                var lootResult = await lootClient.TryLoot(lootReceiver, config);
 
                 lootResults.Add(lootResult);
 
@@ -50,7 +54,7 @@ public class Looter
 
                 var identifier = $"{lootClient.Credentials.Login}";
 
-                _logger.Information($"{progress} | {identifier} | {lootResult.Message}");
+                _logger.Information($"{progress} | {identifier} | {lootReceiver.Partner} | {lootResult.Message}");
 
                 await WaitForNextLoot(lootResult, config);
             });
