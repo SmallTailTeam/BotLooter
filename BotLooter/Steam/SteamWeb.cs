@@ -125,7 +125,8 @@ public class SteamWeb
         await _userSession.WebRequest(request);
         
         request = new RestRequest("https://steamcommunity.com/tradeoffer/new/send", Method.Post);
-        request.AddHeader("Referer", $"https://steamcommunity.com/tradeoffer/new/?partner={tradeOfferUrl.Partner}");;
+        request.AddHeader("Origin", "https://steamcommunity.com");
+        request.AddHeader("Referer", $"https://steamcommunity.com/tradeoffer/new/?partner={tradeOfferUrl.Partner}");
         
         request.AddParameter("serverid", "1");
         request.AddParameter("partner", (SteamId64)tradeOfferUrl.Partner);
