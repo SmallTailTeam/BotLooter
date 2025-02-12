@@ -20,7 +20,7 @@ AppDomain.CurrentDomain.UnhandledException += (_, eventArgs) =>
     Console.ReadKey();
 };
 
-var version = new Version(0, 3, 8, 0);
+var version = new Version(0, 3, 9, 0);
 
 var versionChecker = new GitHubVersionChecker(Log.Logger);
 await versionChecker.Check(version);
