@@ -16,12 +16,14 @@ public class LocalRestClientProvider : IRestClientProvider
             {
                 o.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
                 o.FollowRedirects = false;
-                o.MaxTimeout = 60000;
+                o.MaxTimeout = (int)TimeSpan.FromSeconds(60).TotalMilliseconds;
             },
             configureDefaultHeaders: h => 
             {
-                h.Add("Accept", "*/*");
-                h.Add("Connection", "keep-alive");
+                h.Add("Accept", "application/json, text/plain, */*");
+                h.Add("Sec-Fetch-Site", "cross-site");
+                h.Add("Sec-Fetch-Mode", "cors");
+                h.Add("Sec-Fetch-Dest", "empty");
             },
             configureSerialization: b => b.UseNewtonsoftJson());
     }
