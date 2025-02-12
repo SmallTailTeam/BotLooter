@@ -23,11 +23,11 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Reference Include="SmallTail.SteamSession">
+        <HintPath>..\Dependencies\SmallTail.SteamSession.dll</HintPath>
+      </Reference>
       <Reference Include="SteamAuth">
         <HintPath>..\Dependencies\SteamAuth.dll</HintPath>
-      </Reference>
-      <Reference Include="SteamSession">
-        <HintPath>..\Dependencies\SteamSession.dll</HintPath>
       </Reference>
     </ItemGroup>
 
