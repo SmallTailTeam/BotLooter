@@ -95,6 +95,7 @@ public class SteamWeb
         var request = new RestRequest($"https://steamcommunity.com/inventory/{_userSession.SteamId}/{appId}/{contextId}");
 
         request.AddHeader("Referer", $"https://steamcommunity.com/profiles/{_userSession.SteamId}/inventory");
+        request.AddHeader("X-Requested-With", "XMLHttpRequest");
 
         request.AddParameter("l", "english");
         request.AddParameter("count", MaxItemsPerInventoryRequest);
