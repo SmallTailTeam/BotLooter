@@ -68,7 +68,7 @@ public class ProxyRestClientProvider : IRestClientProvider
                 configureDefaultHeaders: h => 
                 {
                     h.Add("Accept", "application/json, text/plain, */*");
-                    h.Add("Sec-Fetch-Site", "cross-site");
+                    h.Add("Sec-Fetch-Site", "same-origin");
                     h.Add("Sec-Fetch-Mode", "cors");
                     h.Add("Sec-Fetch-Dest", "empty");
                 },

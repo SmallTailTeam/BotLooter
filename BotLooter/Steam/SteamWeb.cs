@@ -146,6 +146,10 @@ public class SteamWeb
     {
         var request = new RestRequest("https://help.steampowered.com/ru/wizard/HelpWhyCantITrade");
 
+        request.AddOrUpdateHeader("Sec-Fetch-Dest", "document");
+        request.AddOrUpdateHeader("Sec-Fetch-Mode", "navigate");
+        request.AddOrUpdateHeader("Sec-Fetch-Site", "none");
+
         var response = await _userSession.WebRequest(request);
 
         if (response.Content is null)
