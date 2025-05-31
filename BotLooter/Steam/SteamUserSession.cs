@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Text.RegularExpressions;
 using BotLooter.Resources;
 using Polly;
 using Polly.Retry;
@@ -54,11 +55,21 @@ public class SteamUserSession
             return false;
         }
         
-        var request = new RestRequest("https://store.steampowered.com/account", Method.Head);
+        var request = new RestRequest("https://steamcommunity.com/my", Method.Get);
 
         var response = await WebRequest(request);
         
-        return response.ResponseUri is not null && !response.ResponseUri.AbsolutePath.StartsWith("/login");
+        if (response.StatusCode == HttpStatusCode.Found) // 302 redirect
+        {
+            var location = response.Headers?.FirstOrDefault(h => h.Name?.Equals("Location", StringComparison.OrdinalIgnoreCase) == true)?.Value?.ToString();
+            
+            if (location is not null)
+            {
+                return Regex.IsMatch(location, @"steamcommunity\.com(\/(id|profiles)\/[^\/]+)\/?");
+            }
+        }
+        
+        return false;
     }
 
     private async Task<(bool Success, string Message)> TryLogin()
