@@ -57,6 +57,10 @@ public class SteamUserSession
         
         var request = new RestRequest("https://steamcommunity.com/my", Method.Get);
 
+        request.AddOrUpdateHeader("Sec-Fetch-Dest", "document");
+        request.AddOrUpdateHeader("Sec-Fetch-Mode", "navigate");
+        request.AddOrUpdateHeader("Sec-Fetch-Site", "none");
+        
         var response = await WebRequest(request);
         
         if (response.StatusCode == HttpStatusCode.Found) // 302 redirect
