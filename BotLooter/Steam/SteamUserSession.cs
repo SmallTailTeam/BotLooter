@@ -56,6 +56,10 @@ public class SteamUserSession
         
         var request = new RestRequest("https://store.steampowered.com/account", Method.Head);
 
+        request.AddOrUpdateHeader("Sec-Fetch-Dest", "document");
+        request.AddOrUpdateHeader("Sec-Fetch-Mode", "navigate");
+        request.AddOrUpdateHeader("Sec-Fetch-Site", "none");
+
         var response = await WebRequest(request);
         
         return response.ResponseUri is not null && !response.ResponseUri.AbsolutePath.StartsWith("/login");
