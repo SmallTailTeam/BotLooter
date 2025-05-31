@@ -15,7 +15,7 @@ public class SteamWeb
     private readonly SteamUserSession _userSession;
     private readonly IHtmlParser _htmlParser;
 
-    private readonly int MaxItemsPerInventoryRequest = 1000;
+    private readonly int MaxItemsPerInventoryRequest = 2000;
 
     private readonly AsyncRetryPolicy<RestResponse<InventoryResponse?>> _getInventoryPolicy;
 
@@ -40,7 +40,7 @@ public class SteamWeb
 
                 return false;
             })
-            .WaitAndRetryAsync(2, _ => TimeSpan.FromSeconds(4));
+            .WaitAndRetryAsync(2, _ => TimeSpan.FromSeconds(5));
     }
 
     public async Task<(HashSet<Description> Descriptions, HashSet<Asset> Assets)?> LoadInventory(string appId, string contextId)
@@ -95,6 +95,7 @@ public class SteamWeb
         var request = new RestRequest($"https://steamcommunity.com/inventory/{_userSession.SteamId}/{appId}/{contextId}");
 
         request.AddHeader("Referer", $"https://steamcommunity.com/profiles/{_userSession.SteamId}/inventory");
+        request.AddHeader("X-Requested-With", "XMLHttpRequest");
 
         request.AddParameter("l", "english");
         request.AddParameter("count", MaxItemsPerInventoryRequest);
