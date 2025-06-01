@@ -68,6 +68,7 @@ public class ProxyRestClientProvider : IRestClientProvider
                 configureDefaultHeaders: h =>
                 {
                     h.Add("Accept", "application/json, text/plain, */*");
+                    h.Add("Accept-Language", "en-US,en;q=0.9");
                 },
                 configureSerialization: b => b.UseNewtonsoftJson());
 
