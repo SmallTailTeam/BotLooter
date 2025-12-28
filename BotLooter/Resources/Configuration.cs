@@ -42,6 +42,8 @@ public class Configuration
     public List<string> LootOnlyItemsWithTags { get; set; } = new();
     public List<string> IgnoreItemsWithTags { get; set; } = new();
 
+    public bool AcknowledgeTrades { get; set; } = false;
+
     public static async Task<(Configuration? Config, string Message)> TryLoadFromFile(string? filePath = null)
     {
         filePath ??= "BotLooter.Config.json";

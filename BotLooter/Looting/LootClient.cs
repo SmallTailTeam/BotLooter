@@ -46,6 +46,18 @@ public class LootClient
         {
             return new LootResult(false, ensureSessionMessage);
         }
+
+        if (config.AcknowledgeTrades)
+        {
+            var isTradesAcknowledged = await _steamWeb.AcknowledgeTrades();
+            
+            Log.Logger.Debug("{Login} : Acknowledge trades {Result}", Credentials.Login, isTradesAcknowledged);
+
+            if (!isTradesAcknowledged)
+            {
+                return new LootResult(false, "Не удалось подтвердлить условия обмена (AcknowledgeTrades)");
+            }
+        }
         
         Log.Logger.Debug("{Login} : {SessionType}", Credentials.Login, ensureSessionMessage);
 

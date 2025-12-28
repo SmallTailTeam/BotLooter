@@ -143,6 +143,25 @@ public class SteamWeb
         return await _userSession.WebRequest<SendTradeOfferResponse>(request, true);
     }
 
+    public async Task<bool> AcknowledgeTrades()
+    {
+        if (_userSession.SteamId is null)
+        {
+            return false;
+        }
+        
+        var request = new RestRequest("https://steamcommunity.com//trade/new/acknowledge", Method.Post);
+        request.AddHeader("Origin", "https://steamcommunity.com");
+        request.AddHeader("Referer", $"https://steamcommunity.com/profiles/{_userSession.SteamId}/tradeoffers/");
+
+        request.AddParameter("message", "1");
+        
+        var response = await _userSession.WebRequest(request, true);
+
+        return response.StatusCode == HttpStatusCode.OK &&
+               response.Content is not null;
+    }
+    
     public async Task<string> GetHelpWhyCantITradeTime()
     {
         var request = new RestRequest("https://help.steampowered.com/ru/wizard/HelpWhyCantITrade");
