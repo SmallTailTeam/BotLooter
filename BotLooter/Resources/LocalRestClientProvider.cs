@@ -18,12 +18,10 @@ public class LocalRestClientProvider : IRestClientProvider
                 o.FollowRedirects = false;
                 o.MaxTimeout = (int)TimeSpan.FromSeconds(60).TotalMilliseconds;
             },
-            configureDefaultHeaders: h => 
+            configureDefaultHeaders: h =>
             {
                 h.Add("Accept", "application/json, text/plain, */*");
-                h.Add("Sec-Fetch-Site", "cross-site");
-                h.Add("Sec-Fetch-Mode", "cors");
-                h.Add("Sec-Fetch-Dest", "empty");
+                h.Add("Accept-Language", "en-US,en;q=0.9");
             },
             configureSerialization: b => b.UseNewtonsoftJson());
     }
